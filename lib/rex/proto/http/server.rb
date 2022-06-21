@@ -40,6 +40,11 @@ module ServerClient
     # Add any other standard response headers.
     server.add_response_headers(response)
 
+    # Use HTTP Trace for logging responses sent from server
+    # TODO: Pass HTTP-Trace related datastore options here
+    http_trace_object = Rex::Proto::Http::HttpTrace.new(true)
+    http_trace_object.use_http_trace_response(response, response.code)
+
     # Send it off.
     put(response.to_s)
   end
@@ -297,6 +302,11 @@ protected
 
       raise ::EOFError if not data
       raise ::EOFError if data.empty?
+ 
+      # Use HTTP Trace for logging requests received at the server
+      # TODO: Pass HTTP-Trace related datastore options here
+      http_trace_object = Rex::Proto::Http::HttpTrace.new(true)
+      http_trace_object.use_http_trace_request(cli.request, cli.request.opts['method'])
 
       case cli.request.parse(data)
         when Packet::ParseCode::Completed
