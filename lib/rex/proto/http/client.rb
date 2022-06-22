@@ -230,9 +230,12 @@ class Client
       req = req.opts['ntlm_transform_request'].call(self.ntlm_client, req)
     end
 
+    http_trace_object = Rex::Proto::Http::HttpTrace.new
+    http_trace_object.use_http_trace_request(req, 'red/blue')
     send_request(req, t)
 
     res = read_response(t)
+    http_trace_object.use_http_trace_response(res, 'red/blue')
     if req.respond_to?(:opts) && req.opts['ntlm_transform_response'] && self.ntlm_client
       req.opts['ntlm_transform_response'].call(self.ntlm_client, res)
     end

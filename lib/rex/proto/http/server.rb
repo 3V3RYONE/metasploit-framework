@@ -40,6 +40,10 @@ module ServerClient
     # Add any other standard response headers.
     server.add_response_headers(response)
 
+    # Use HTTP Trace for server
+    http_trace_object = Rex::Proto::Http::HttpTrace.new
+    http_trace_object.use_http_trace_response(response, 'red/blue')
+
     # Send it off.
     put(response.to_s)
   end
