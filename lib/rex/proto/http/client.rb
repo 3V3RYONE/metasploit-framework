@@ -31,8 +31,8 @@ class Client
     self.username = username
     self.password = password
     self.comm = comm
-    self.req = nil
-    self.res = nil
+    @request = nil
+    @response = nil
 
     # Take ClientRequest's defaults, but override with our own
     self.config = Http::ClientRequest::DefaultConfig.merge({
@@ -232,11 +232,11 @@ class Client
       req = req.opts['ntlm_transform_request'].call(self.ntlm_client, req)
     end
 
-    self.req = req
     send_request(req, t)
+    @request = req
 
     res = read_response(t)
-    self.res = res
+    @response = res
 
     if req.respond_to?(:opts) && req.opts['ntlm_transform_response'] && self.ntlm_client
       req.opts['ntlm_transform_response'].call(self.ntlm_client, res)
@@ -689,7 +689,7 @@ class Client
   # 
   def track_request(&http_trace)
     if not http_trace.nil?
-      http_trace.call(self.req)
+      http_trace.call(@request)
     end
   end
 
@@ -699,7 +699,7 @@ class Client
   #
   def track_response(&http_trace)
     if not http_trace.nil?
-      http_trace.call(self.res)
+      http_trace.call(@response)
     end
   end
 
