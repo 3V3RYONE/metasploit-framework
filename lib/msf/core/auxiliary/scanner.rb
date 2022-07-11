@@ -21,7 +21,8 @@ def initialize(info = {})
 
   register_options([
       Opt::RHOSTS,
-      OptInt.new('THREADS', [ true, "The number of concurrent threads (max one per host)", 1 ] )
+      OptInt.new('THREADS', [ true, "The number of concurrent threads (max one per host)", 1 ] ),
+      OptBool.new('HttpTrace', [ false, "Show raw HTTP requests and responses", false ])
     ], Auxiliary::Scanner)
 
   register_advanced_options([
@@ -56,6 +57,7 @@ end
 def run
   @show_progress = datastore['ShowProgress']
   @show_percent  = datastore['ShowProgressPercent'].to_i
+  @http_trace = datastore['HttpTrace']
 
   rhosts_walker  = Msf::RhostsWalker.new(self.datastore['RHOSTS'], self.datastore).to_enum
   @range_count   = rhosts_walker.count || 0
@@ -94,6 +96,19 @@ def run
       threads_max = 200
     end
   end
+
+  #
+  # HttpTrace for Rex Client
+  #
+  nclient = Rex::Proto::Http::Client.new(datastore['RHOSTS'])
+  if datastore['HttpTrace']
+    ds_request = proc { |request| print_line("# Request: #{request}") }
+    nclient.track_request(&ds_request)
+
+    ds_response = proc { |response| print_line("# Response: #{response}") }
+    nclient.track_response(&ds_response)
+  end
+    
 
   begin
 
