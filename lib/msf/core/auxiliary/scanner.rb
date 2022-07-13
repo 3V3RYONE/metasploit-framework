@@ -57,7 +57,6 @@ end
 def run
   @show_progress = datastore['ShowProgress']
   @show_percent  = datastore['ShowProgressPercent'].to_i
-  @http_trace = datastore['HttpTrace']
 
   rhosts_walker  = Msf::RhostsWalker.new(self.datastore['RHOSTS'], self.datastore).to_enum
   @range_count   = rhosts_walker.count || 0
@@ -97,18 +96,8 @@ def run
     end
   end
 
-  #
-  # HttpTrace for Rex Client
-  #
-  nclient = Rex::Proto::Http::Client.new(datastore['RHOSTS'])
-  if datastore['HttpTrace']
-    ds_request = proc { |request| print_line("# Request: #{request}") }
-    nclient.track_request(&ds_request)
-
-    ds_response = proc { |response| print_line("# Response: #{response}") }
-    nclient.track_response(&ds_response)
-  end
-    
+  http_trace = Metasploit::Framework::LoginScanner::HTTP.new
+  http_trace.check_httptrace_datastore(datastore['HttpTrace'])
 
   begin
 

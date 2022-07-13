@@ -18,7 +18,9 @@ module Metasploit
         LIKELY_PORTS         = [ 80, 443, 8000, 8080 ]
         LIKELY_SERVICE_NAMES = [ 'http', 'https' ]
         PRIVATE_TYPES        = [ :password ]
-        REALM_KEY            = Metasploit::Model::Realm::Key::ACTIVE_DIRECTORY_DOMAIN
+        REALM_KEY            = Metasploit::Model::Realm::Key::ACTIVE_DIRECTORY_DOMAIN 
+
+        @@http_trace = false
 
         # @!attribute uri
         #   @return [String] The path and query string on the server to
@@ -203,6 +205,16 @@ module Metasploit
           error_message
         end
 
+
+        def check_httptrace_datastore(http_trace_opts)
+          if http_trace_opts
+            @@http_trace = true
+          else
+            @@http_trace = false
+          end
+        end
+          
+
         # Sends a HTTP request with Rex
         #
         # @param [Hash] opts native support includes the following (also see Rex::Proto::Http::Request#request_cgi)
@@ -252,6 +264,14 @@ module Metasploit
                   else
                     cli._send_recv(req)
                   end
+            if @@http_trace
+              dt_request = proc { |request| print_line("# Request: #{request}") }
+              dt_response = proc { |response| print_line("# Response: #{response}") }
+              cli.track_request(&dt_request)
+              cli.track_response(&dt_response)
+          end
+
+           
           rescue ::EOFError, Errno::ETIMEDOUT ,Errno::ECONNRESET, Rex::ConnectionError, OpenSSL::SSL::SSLError, ::Timeout::Error => e
             raise Rex::ConnectionError, e.message
           ensure
