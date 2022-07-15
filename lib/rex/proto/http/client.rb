@@ -31,6 +31,8 @@ class Client
     self.username = username
     self.password = password
     self.comm = comm
+    @@proc_httptrace_request ||= nil
+    @@proc_httptrace_response ||= nil
 
     # Take ClientRequest's defaults, but override with our own
     self.config = Http::ClientRequest::DefaultConfig.merge({
@@ -237,8 +239,10 @@ class Client
     # Use HTTP-Trace for logging requests sent from client
     http_trace_object.use_http_trace_request(req, req.opts['method'])
     send_request(req, t)
+    track_request(req)
 
     res = read_response(t)
+    track_response(res)
     # Use HTTP-Trace for logging responses received to the client
     http_trace_object.use_http_trace_response(res, res.code)
     if req.respond_to?(:opts) && req.opts['ntlm_transform_response'] && self.ntlm_client
@@ -684,6 +688,28 @@ class Client
       end
     end
     nil
+  end
+
+  #
+  # Track request
+  #
+  def track_request(req)
+    @@proc_httptrace_request.call(req) unless @@proc_httptrace_request.nil?
+  end
+
+  #
+  # Track response
+  #
+  def track_response(res)
+    @@proc_httptrace_response.call(res) unless @@proc_httptrace_response.nil?
+  end
+
+  #
+  # Set Procs as class variable
+  #
+  def set_procs_httptrace(proc_request, proc_response)
+    @@proc_httptrace_request = proc_request
+    @@proc_httptrace_response = proc_response
   end
 
   #

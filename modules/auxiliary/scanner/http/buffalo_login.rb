@@ -37,6 +37,7 @@ class MetasploitModule < Msf::Auxiliary
       password: datastore['PASSWORD']
     )
 
+    assign_proc_httptrace()
     scanner = Metasploit::Framework::LoginScanner::Buffalo.new(
       configure_http_login_scanner(
         cred_details: cred_collection,
