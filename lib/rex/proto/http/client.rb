@@ -21,7 +21,7 @@ class Client
   #
   # Creates a new client instance
   #
-  def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil)
+  def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil, http_trace_proc: nil)
     self.hostname = host
     self.port     = port.to_i
     self.context  = context
@@ -31,6 +31,7 @@ class Client
     self.username = username
     self.password = password
     self.comm = comm
+    self.http_trace_proc = http_trace_proc
 
     # Take ClientRequest's defaults, but override with our own
     self.config = Http::ClientRequest::DefaultConfig.merge({
@@ -235,6 +236,7 @@ class Client
     send_request(req, t)
 
     res = read_response(t)
+    httptrace_use_callback(req, res)
     if req.respond_to?(:opts) && req.opts['ntlm_transform_response'] && self.ntlm_client
       req.opts['ntlm_transform_response'].call(self.ntlm_client, res)
     end
@@ -680,6 +682,10 @@ class Client
     nil
   end
 
+  def httptrace_use_callback(req, res)
+    self.http_trace_proc.call(req, res) unless self.http_trace_proc.nil?
+  end
+
   #
   # An optional comm to use for creating the underlying socket.
   #
@@ -722,6 +728,9 @@ class Client
 
   # When parsing the request, thunk off the first response from the server, since junk
   attr_accessor :junk_pipeline
+
+  # HTTP-Trace
+  attr_accessor :http_trace_proc
 
 protected
 

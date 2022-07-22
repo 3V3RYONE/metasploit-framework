@@ -177,6 +177,8 @@ module Metasploit
         # @return [String]
         attr_accessor :http_password
 
+        attr_accessor :http_trace
+
 
         validates :uri, presence: true, length: { minimum: 1 }
 
@@ -235,6 +237,14 @@ module Metasploit
           context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module}
 
           res = nil
+          
+          if http_trace
+            http_trace_proc = proc { |request, response|
+              print_line("# Request ==== #{request}")
+              print_line("# Response ==== #{response}")
+            }
+          end
+
           cli = Rex::Proto::Http::Client.new(
             rhost,
             rport,
@@ -243,7 +253,8 @@ module Metasploit
             cli_ssl_version,
             cli_proxies,
             username,
-            password
+            password,
+            http_trace_proc: http_trace_proc
           )
           configure_http_client(cli)
 
@@ -311,7 +322,8 @@ module Metasploit
         def configure_http_client(http_client)
           http_client.set_config(
             'vhost'                  => vhost || host,
-            'agent'                  => user_agent
+            'agent'                  => user_agent,
+            'http_trace'             => http_trace
           )
 
           possible_params = {
