@@ -1,4 +1,3 @@
-
 require 'metasploit/framework/login_scanner/base'
 require 'metasploit/framework/login_scanner/rex_socket'
 
@@ -117,6 +116,14 @@ module Metasploit
         #   @return [Integer] How many fake post variables to insert into the request
         attr_accessor :evade_pad_post_params_count
 
+        # @!attribute evade_shuffle_get_params
+        #   @return [Boolean] Randomize order of GET parameters
+        attr_accessor :evade_shuffle_get_params
+
+        # @!attribute evade_shuffle_post_params
+        #   @return [Boolean] Randomize order of POST parameters
+        attr_accessor :evade_shuffle_post_params
+
         # @!attribute evade_uri_fake_end
         #   @return [Boolean] Whether to add a fake end of URI (eg: /%20HTTP/1.0/../../)
         attr_accessor :evade_uri_fake_end
@@ -168,6 +175,8 @@ module Metasploit
         # @!attribute http_password
         # @return [String]
         attr_accessor :http_password
+
+        attr_accessor :http_trace
 
 
         validates :uri, presence: true, length: { minimum: 1 }
@@ -227,6 +236,14 @@ module Metasploit
           context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module}
 
           res = nil
+          
+          if http_trace
+            http_trace_proc = proc { |request, response|
+              print_line("# Request ==== #{request}")
+              print_line("# Response ==== #{response}")
+            }
+          end
+
           cli = Rex::Proto::Http::Client.new(
             rhost,
             rport,
@@ -235,7 +252,8 @@ module Metasploit
             cli_ssl_version,
             cli_proxies,
             username,
-            password
+            password,
+            http_trace_proc: http_trace_proc
           )
           configure_http_client(cli)
 
@@ -303,7 +321,8 @@ module Metasploit
         def configure_http_client(http_client)
           http_client.set_config(
             'vhost'                  => vhost || host,
-            'agent'                  => user_agent
+            'agent'                  => user_agent,
+            'http_trace'             => http_trace
           )
 
           possible_params = {
@@ -327,6 +346,8 @@ module Metasploit
             'pad_get_params_count'   => evade_pad_get_params_count,
             'pad_post_params'        => evade_pad_post_params,
             'pad_post_params_count'  => evade_pad_post_params_count,
+            'shuffle_get_params'     => evade_shuffle_get_params,
+            'shuffle_post_params'    => evade_shuffle_post_params,
             'uri_fake_end'           => evade_uri_fake_end,
             'uri_fake_params_start'  => evade_uri_fake_params_start,
             'header_folding'         => evade_header_folding,
