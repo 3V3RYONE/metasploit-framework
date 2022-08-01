@@ -250,7 +250,7 @@ module Metasploit
           if http_trace
             proc_httptrace = proc { |request, response|
               request_color, response_color =
-                (http_trace_colors || '').split('/').map { |color| "%bld%#{color}" }
+                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
               
               request = request.to_s(headers_only: http_trace_headers_only)
               print_line('#' * 20)
