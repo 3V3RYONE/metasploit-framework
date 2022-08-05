@@ -41,7 +41,7 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = send_request({'uri' => normalize_uri('/')})
+            res = pass_request({'uri' => normalize_uri('/')})
             return "Connection failed" if res.nil?
 
             if res.code != 200
@@ -68,12 +68,8 @@ module Metasploit
         #
         # @param (see Rex::Proto::Http::Resquest#request_raw)
         # @return [Rex::Proto::Http::Response] The HTTP response
-        def send_request(opts)
-          cli = Rex::Proto::Http::Client.new(host, port, {'Msf' => framework, 'MsfExploit' => self}, ssl, ssl_version, proxies, http_username, http_password)
-          configure_http_client(cli)
-          cli.connect
-          req = cli.request_raw(opts)
-          res = cli.send_recv(req)
+        def pass_request(opts)
+          res = send_request(opts)
 
           # Found a cookie? Set it. We're going to need it.
           if res && res.get_cookies =~ /(zbx_session(?:id)?=\w+(?:%3D){0,2};)/i
@@ -104,7 +100,7 @@ module Metasploit
             }
           }
 
-          send_request(opts)
+          pass_request(opts)
         end
 
 
@@ -116,7 +112,7 @@ module Metasploit
               'Cookie'  => "#{self.zsession}"
             }
           }
-          send_request(opts)
+          pass_request(opts)
         end
 
         # Tries to login to Zabbix
