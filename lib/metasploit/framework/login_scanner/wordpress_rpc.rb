@@ -23,10 +23,12 @@ module Metasploit
 
           begin
 
-            response = send_request({
+            response = send_request(
+              {
                 'uri' => uri,
                 'method' => method,
-                'data' => generate_xml_request(credential.public,credential.private})
+                'data' => generate_xml_request(credential.public,credential.private)
+              }
             )
 
             if response && response.code == 200 && response.body =~ /<value><int>401<\/int><\/value>/ || response.body =~ /<name>user_id<\/name>/
