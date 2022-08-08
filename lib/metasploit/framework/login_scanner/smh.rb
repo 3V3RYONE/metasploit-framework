@@ -33,7 +33,7 @@ module Metasploit
           res = nil
 
           begin
-            res = send_request(req)
+            res = send_request(req_opts)
 
           rescue ::Rex::ConnectionError, Errno::ECONNREFUSED, ::EOFError, ::Timeout::Error => e
             result_opts.merge!(status: Metasploit::Model::Login::Status::UNABLE_TO_CONNECT, proof: e)
