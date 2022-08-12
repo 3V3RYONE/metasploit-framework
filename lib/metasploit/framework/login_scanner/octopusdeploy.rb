@@ -34,14 +34,12 @@ module Metasploit
             result_opts[:service_name] = 'http'
           end
           begin 
+            json_post_data = JSON.pretty_generate({ Username: credential.public, Password: credential.private })
             res = send_request({
               'method' => 'POST',
               'uri' => uri,
               'ctype' => 'application/json',
-              'vars_post' => {
-                'Username' => credential.public,
-                'Password' => credential.private
-              }
+              'data' => json_post_data
             })
 
             body = JSON.parse(res.body)
