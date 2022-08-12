@@ -66,20 +66,20 @@ RSpec.describe Metasploit::Framework::LoginScanner::Glassfish do
     http_scanner.instance_variable_set(:@version, good_version)
   end
 
-  context '#send_request' do
+  context '#send_request_and_grab_cookie' do
     let(:req_opts) do
       {'uri'=>'/', 'method'=>'GET'}
     end
 
     it 'returns a Rex::Proto::Http::Response object' do
       allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).and_return(Rex::Proto::Http::Response.new(res_code))
-      expect(http_scanner.send_request(req_opts)).to be_kind_of(Rex::Proto::Http::Response)
+      expect(http_scanner.send_request_and_grab_cookie(req_opts)).to be_kind_of(Rex::Proto::Http::Response)
     end
 
     it 'parses JSESSIONID session cookies' do
       allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).and_return(Rex::Proto::Http::Response.new(res_code))
       allow_any_instance_of(Rex::Proto::Http::Response).to receive(:get_cookies).and_return("JSESSIONID=JSESSIONID_MAGIC_VALUE;")
-      http_scanner.send_request(req_opts)
+      http_scanner.send_request_and_grab_cookie(req_opts)
       expect(http_scanner.jsession).to eq("JSESSIONID_MAGIC_VALUE")
     end
   end
@@ -102,12 +102,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::Glassfish do
 
   context '#try_login' do
     it 'sends a login request to /j_security_check' do
-      expect(http_scanner).to receive(:send_request).with(hash_including('uri'=>'/j_security_check'))
+      expect(http_scanner).to receive(:send_request_and_grab_cookie).with(hash_including('uri'=>'/j_security_check'))
       http_scanner.try_login(cred)
     end
 
     it 'sends a login request containing the username and password' do
-      expect(http_scanner).to receive(:send_request).with(hash_including('data'=>"j_username=#{username}&j_password=#{password}&loginButton=Login"))
+      expect(http_scanner).to receive(:send_request_and_grab_cookie).with(hash_including('data'=>"j_username=#{username}&j_password=#{password}&loginButton=Login"))
       http_scanner.try_login(cred)
     end
   end

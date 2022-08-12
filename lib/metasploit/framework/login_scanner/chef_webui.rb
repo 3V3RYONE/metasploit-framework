@@ -46,7 +46,10 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = send_request({'uri' => normalize_uri('/users/login')})
+            res = send_request_and_grab_cookie({
+              'uri' => normalize_uri('/users/login'),
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
 
             if res.code != 200
@@ -68,12 +71,8 @@ module Metasploit
         #
         # @param (see Rex::Proto::Http::Resquest#request_raw)
         # @return [Rex::Proto::Http::Response] The HTTP response
-        def send_request(opts)
-          cli = Rex::Proto::Http::Client.new(host, port, {'Msf' => framework, 'MsfExploit' => self}, ssl, ssl_version, proxies, http_username, http_password)
-          configure_http_client(cli)
-          cli.connect
-          req = cli.request_raw(opts)
-          res = cli.send_recv(req)
+        def send_request_and_grab_cookie(opts) 
+          res = send_request(opts)
 
           # Save the session ID cookie
           if res && res.get_cookies =~ /(_\w+_session)=([^;$]+)/i
@@ -103,10 +102,11 @@ module Metasploit
             'headers' => {
               'Content-Type'   => 'application/x-www-form-urlencoded',
               'Cookie'         => "#{self.session_name}=#{self.session_id}"
-            }
+            },
+            'requestcgi' => false
           }
 
-          send_request(opts)
+          send_request_and_grab_cookie(opts)
         end
 
 
@@ -119,7 +119,10 @@ module Metasploit
         def try_login(credential)
 
           # Obtain a CSRF token first
-          res = send_request({'uri' => normalize_uri('/users/login')})
+          res = send_request_and_grab_cookie({
+            'uri' => normalize_uri('/users/login'),
+            'requestcgi' => false  
+          })
           unless (res && res.code == 200 && res.body =~ /input name="authenticity_token" type="hidden" value="([^"]+)"/m)
             return {:status => Metasploit::Model::Login::Status::UNTRIED, :proof => res.body}
           end
@@ -133,9 +136,10 @@ module Metasploit
               'method'  => 'GET',
               'headers' => {
                 'Cookie'  => "#{self.session_name}=#{self.session_id}"
-              }
+              },
+              'requestcgi' => false
             }
-            res = send_request(opts)
+            res = send_request_and_grab_cookie(opts)
             if (res && res.code == 200 && res.body.to_s =~ /New password for the User/)
               return {:status => Metasploit::Model::Login::Status::SUCCESSFUL, :proof => res.body}
             end

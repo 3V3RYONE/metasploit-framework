@@ -30,7 +30,10 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = send_request({'uri' => '/common/index.jsf'})
+            res = send_request_and_grab_cookie({
+              'uri' => '/common/index.jsf',
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
             if !([200, 302].include?(res.code))
               return "Unexpected HTTP response code #{res.code} (is this really Glassfish?)"
@@ -40,7 +43,10 @@ module Metasploit
             # same port.
             if !self.ssl && res.headers['Location'] =~ /^https:/
               self.ssl = true
-              res = send_request({'uri' => '/common/index.jsf'})
+              res = send_request_and_grab_cookie({
+                'uri' => '/common/index.jsf',
+                'requestcgi' => false
+              })
               if res.nil?
                 return "Connection failed after SSL redirection"
               end
@@ -49,7 +55,10 @@ module Metasploit
               end
             end
 
-            res = send_request({'uri' => '/login.jsf'})
+            res = send_request_and_grab_cookie({
+              'uri' => '/login.jsf',
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
             extract_version(res.headers['Server'])
 
@@ -67,12 +76,8 @@ module Metasploit
         #
         # @param (see Rex::Proto::Http::Resquest#request_raw)
         # @return [Rex::Proto::Http::Response] The HTTP response
-        def send_request(opts)
-          cli = Rex::Proto::Http::Client.new(host, port, {'Msf' => framework, 'MsfExploit' => framework_module}, ssl, ssl_version, proxies, http_username, http_password)
-          configure_http_client(cli)
-          cli.connect
-          req = cli.request_raw(opts)
-          res = cli.send_recv(req)
+        def send_request_and_grab_cookie(opts)
+          res = send_request(opts)
 
           # Found a cookie? Set it. We're going to need it.
           if res && res.get_cookies =~ /JSESSIONID=(\w*);/i
@@ -110,10 +115,11 @@ module Metasploit
             'headers' => {
               'Content-Type'   => 'application/x-www-form-urlencoded',
               'Cookie'         => "JSESSIONID=#{self.jsession}",
-            }
+            },
+            'requestcgi' => false
           }
 
-          send_request(opts)
+          send_request_and_grab_cookie(opts)
         end
 
 
@@ -131,9 +137,10 @@ module Metasploit
               'method'  => 'GET',
               'headers' => {
                 'Cookie'  => "JSESSIONID=#{self.jsession}"
-              }
+              },
+              'requestcgi' => false
             }
-            res = send_request(opts)
+            res = send_request_and_grab_cookie(opts)
             p = /<title>Deploy Enterprise Applications\/Modules/
             if (res && res.code.to_i == 200 && res.body.match(p) != nil)
               return {:status => Metasploit::Model::Login::Status::SUCCESSFUL, :proof => res.body}
@@ -173,9 +180,10 @@ module Metasploit
               'method'  => 'GET',
               'headers' => {
                 'Cookie'  => "JSESSIONID=#{self.jsession}"
-              }
+              },
+              'requestcgi' => false
             }
-            res = send_request(opts)
+            res = send_request_and_grab_cookie(opts)
 
             p = /<title>Deploy Applications or Modules/
             if (res && res.code.to_i == 200 && res.body.match(p) != nil)

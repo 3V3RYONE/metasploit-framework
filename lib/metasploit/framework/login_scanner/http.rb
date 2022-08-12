@@ -291,7 +291,13 @@ module Metasploit
 
           begin
             cli.connect
-            req = cli.request_cgi(opts)
+            # Send CGI compatible request by default
+            req = if opts['requestcgi'].nil? || opts['requestcgi']
+                    cli.request_cgi(opts)
+                  else
+                    cli.request_raw(opts)
+                  end
+
             # Authenticate by default
             res = if opts['authenticate'].nil? || opts['authenticate']
                     cli.send_recv(req)
