@@ -46,20 +46,20 @@ RSpec.describe Metasploit::Framework::LoginScanner::ChefWebUI do
     200
   end
 
-  context '#pass_request' do
+  context '#send_request_and_grab_cookie' do
     let(:req_opts) do
       {'uri'=>'/users/sign_in', 'method'=>'GET'}
     end
 
     it 'returns a Rex::Proto::Http::Response object' do
       allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).and_return(Rex::Proto::Http::Response.new(res_code))
-      expect(http_scanner.pass_request(req_opts)).to be_kind_of(Rex::Proto::Http::Response)
+      expect(http_scanner.send_request_and_grab_cookie(req_opts)).to be_kind_of(Rex::Proto::Http::Response)
     end
 
     it 'parses session cookies' do
       allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).and_return(Rex::Proto::Http::Response.new(res_code))
       allow_any_instance_of(Rex::Proto::Http::Response).to receive(:get_cookies).and_return("_sandbox_session=c2g2ZXVhZWRpU1RMTDg1SmkyS0pQVnUwYUFCcDZJYklwb2gyYmhZd2dvcGI3b2VSaWd6L0Q4SkVOaytKa1VPNmd0R01HRHFabnFZZ09YUVZhVHFPWnhRdkZTSHF6VnpCU1Y3VFRRcTEyV0xVTUtLNlZIK3VBM3V2ZlFTS2FaOWV3cjlPT2RLRlZIeG1UTElMY3ozUEtIOFNzWkFDbW9VQ1VpRlF6ZThiNXZHbmVudWY0Nk9PSSsxSFg2WVZjeklvLS1UTk1GU2x6QXJFR3lFSjNZL0JhYzBRPT0%3D--6f0cc3051739c8a95551339c3f2a084e0c30924e")
-      http_scanner.pass_request(req_opts)
+      http_scanner.send_request_and_grab_cookie(req_opts)
       expect(http_scanner.session_name).to eq("_sandbox_session")
       expect(http_scanner.session_id).to eq("c2g2ZXVhZWRpU1RMTDg1SmkyS0pQVnUwYUFCcDZJYklwb2gyYmhZd2dvcGI3b2VSaWd6L0Q4SkVOaytKa1VPNmd0R01HRHFabnFZZ09YUVZhVHFPWnhRdkZTSHF6VnpCU1Y3VFRRcTEyV0xVTUtLNlZIK3VBM3V2ZlFTS2FaOWV3cjlPT2RLRlZIeG1UTElMY3ozUEtIOFNzWkFDbW9VQ1VpRlF6ZThiNXZHbmVudWY0Nk9PSSsxSFg2WVZjeklvLS1UTk1GU2x6QXJFR3lFSjNZL0JhYzBRPT0%3D--6f0cc3051739c8a95551339c3f2a084e0c30924e")
     end
@@ -67,12 +67,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::ChefWebUI do
 
   context '#try_credential' do
     it 'sends a login request to /users/login_exec' do
-      expect(http_scanner).to receive(:pass_request).with(hash_including('uri'=>'/users/login_exec'))
+      expect(http_scanner).to receive(:send_request_and_grab_cookie).with(hash_including('uri'=>'/users/login_exec'))
       http_scanner.try_credential('byV12YkMA6NV3zJFqclZjy1JR+AZYbCx75gT0dipoAo=', cred)
     end
 
     it 'sends a login request containing the username and password' do
-      expect(http_scanner).to receive(:pass_request).with(hash_including('data'=>"utf8=%E2%9C%93&authenticity_token=byV12YkMA6NV3zJFqclZjy1JR%2bAZYbCx75gT0dipoAo%3d&name=#{username}&password=#{password}&commit=login"))
+      expect(http_scanner).to receive(:send_request_and_grab_cookie).with(hash_including('data'=>"utf8=%E2%9C%93&authenticity_token=byV12YkMA6NV3zJFqclZjy1JR%2bAZYbCx75gT0dipoAo%3d&name=#{username}&password=#{password}&commit=login"))
       http_scanner.try_credential('byV12YkMA6NV3zJFqclZjy1JR+AZYbCx75gT0dipoAo=', cred)
     end
   end

@@ -41,7 +41,7 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = pass_request({
+            res = send_request_and_grab_cookie({
               'uri' => normalize_uri('/'),
               'requestcgi' => false
             })
@@ -71,7 +71,7 @@ module Metasploit
         #
         # @param (see Rex::Proto::Http::Resquest#request_raw)
         # @return [Rex::Proto::Http::Response] The HTTP response
-        def pass_request(opts)
+        def send_request_and_grab_cookie(opts)
           res = send_request(opts)
 
           # Found a cookie? Set it. We're going to need it.
@@ -104,7 +104,7 @@ module Metasploit
             'requestcgi' => false
           }
 
-          pass_request(opts)
+          send_request_and_grab_cookie(opts)
         end
 
 
@@ -117,7 +117,7 @@ module Metasploit
             },
             'requestcgi' => false
           }
-          pass_request(opts)
+          send_request_and_grab_cookie(opts)
         end
 
         # Tries to login to Zabbix

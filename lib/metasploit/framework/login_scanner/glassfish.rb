@@ -30,7 +30,7 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = pass_request({
+            res = send_request_and_grab_cookie({
               'uri' => '/common/index.jsf',
               'requestcgi' => false
             })
@@ -43,7 +43,7 @@ module Metasploit
             # same port.
             if !self.ssl && res.headers['Location'] =~ /^https:/
               self.ssl = true
-              res = pass_request({
+              res = send_request_and_grab_cookie({
                 'uri' => '/common/index.jsf',
                 'requestcgi' => false
               })
@@ -55,7 +55,7 @@ module Metasploit
               end
             end
 
-            res = pass_request({
+            res = send_request_and_grab_cookie({
               'uri' => '/login.jsf',
               'requestcgi' => false
             })
@@ -76,7 +76,7 @@ module Metasploit
         #
         # @param (see Rex::Proto::Http::Resquest#request_raw)
         # @return [Rex::Proto::Http::Response] The HTTP response
-        def pass_request(opts)
+        def send_request_and_grab_cookie(opts)
           res = send_request(opts)
 
           # Found a cookie? Set it. We're going to need it.
@@ -119,7 +119,7 @@ module Metasploit
             'requestcgi' => false
           }
 
-          pass_request(opts)
+          send_request_and_grab_cookie(opts)
         end
 
 
@@ -140,7 +140,7 @@ module Metasploit
               },
               'requestcgi' => false
             }
-            res = pass_request(opts)
+            res = send_request_and_grab_cookie(opts)
             p = /<title>Deploy Enterprise Applications\/Modules/
             if (res && res.code.to_i == 200 && res.body.match(p) != nil)
               return {:status => Metasploit::Model::Login::Status::SUCCESSFUL, :proof => res.body}
@@ -183,7 +183,7 @@ module Metasploit
               },
               'requestcgi' => false
             }
-            res = pass_request(opts)
+            res = send_request_and_grab_cookie(opts)
 
             p = /<title>Deploy Applications or Modules/
             if (res && res.code.to_i == 200 && res.body.match(p) != nil)

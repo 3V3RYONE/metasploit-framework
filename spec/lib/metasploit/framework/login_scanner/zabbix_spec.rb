@@ -66,32 +66,32 @@ RSpec.describe Metasploit::Framework::LoginScanner::Zabbix do
     http_scanner.instance_variable_set(:@version, good_version)
   end
 
-  context '#pass_request' do
+  context '#send_request_and_grab_cookie' do
     let(:req_opts) do
       {'uri'=>'/', 'method'=>'GET'}
     end
 
     it 'returns a Rex::Proto::Http::Response object' do
       allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).and_return(Rex::Proto::Http::Response.new(res_code))
-      expect(http_scanner.pass_request(req_opts)).to be_kind_of(Rex::Proto::Http::Response)
+      expect(http_scanner.send_request_and_grab_cookie(req_opts)).to be_kind_of(Rex::Proto::Http::Response)
     end
 
     it 'parses zbx_sessionid session cookies' do
       allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).and_return(Rex::Proto::Http::Response.new(res_code))
       allow_any_instance_of(Rex::Proto::Http::Response).to receive(:get_cookies).and_return("zbx_sessionid=ZBXSESSIONID_MAGIC_VALUE;")
-      http_scanner.pass_request(req_opts)
+      http_scanner.send_request_and_grab_cookie(req_opts)
       expect(http_scanner.zsession).to match(/zbx_session(?:id)?=ZBXSESSIONID_MAGIC_VALUE/)
     end
   end
 
   context '#try_credential' do
     it 'sends a login request to /index.php' do
-      expect(http_scanner).to receive(:pass_request).with(hash_including('uri'=>'/index.php'))
+      expect(http_scanner).to receive(:send_request_and_grab_cookie).with(hash_including('uri'=>'/index.php'))
       http_scanner.try_credential(cred)
     end
 
     it 'sends a login request containing the username and password' do
-      expect(http_scanner).to receive(:pass_request).with(hash_including('data'=>"request=&name=#{username}&password=#{password}&autologin=1&enter=Sign%20in"))
+      expect(http_scanner).to receive(:send_request_and_grab_cookie).with(hash_including('data'=>"request=&name=#{username}&password=#{password}&autologin=1&enter=Sign%20in"))
       http_scanner.try_credential(cred)
     end
   end
