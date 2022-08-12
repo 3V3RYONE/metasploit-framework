@@ -41,7 +41,10 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = pass_request({'uri' => normalize_uri('/')})
+            res = pass_request({
+              'uri' => normalize_uri('/'),
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
 
             if res.code != 200
@@ -97,7 +100,8 @@ module Metasploit
             'data'    => data,
             'headers' => {
               'Content-Type'   => 'application/x-www-form-urlencoded'
-            }
+            },
+            'requestcgi' => false
           }
 
           pass_request(opts)
@@ -110,7 +114,8 @@ module Metasploit
             'method'  => 'GET',
             'headers' => {
               'Cookie'  => "#{self.zsession}"
-            }
+            },
+            'requestcgi' => false
           }
           pass_request(opts)
         end

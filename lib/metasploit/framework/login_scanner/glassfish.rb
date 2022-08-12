@@ -30,7 +30,10 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = pass_request({'uri' => '/common/index.jsf'})
+            res = pass_request({
+              'uri' => '/common/index.jsf',
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
             if !([200, 302].include?(res.code))
               return "Unexpected HTTP response code #{res.code} (is this really Glassfish?)"
@@ -40,7 +43,10 @@ module Metasploit
             # same port.
             if !self.ssl && res.headers['Location'] =~ /^https:/
               self.ssl = true
-              res = pass_request({'uri' => '/common/index.jsf'})
+              res = pass_request({
+                'uri' => '/common/index.jsf',
+                'requestcgi' => false
+              })
               if res.nil?
                 return "Connection failed after SSL redirection"
               end
@@ -49,7 +55,10 @@ module Metasploit
               end
             end
 
-            res = pass_request({'uri' => '/login.jsf'})
+            res = pass_request({
+              'uri' => '/login.jsf',
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
             extract_version(res.headers['Server'])
 
@@ -106,7 +115,8 @@ module Metasploit
             'headers' => {
               'Content-Type'   => 'application/x-www-form-urlencoded',
               'Cookie'         => "JSESSIONID=#{self.jsession}",
-            }
+            },
+            'requestcgi' => false
           }
 
           pass_request(opts)
@@ -127,7 +137,8 @@ module Metasploit
               'method'  => 'GET',
               'headers' => {
                 'Cookie'  => "JSESSIONID=#{self.jsession}"
-              }
+              },
+              'requestcgi' => false
             }
             res = pass_request(opts)
             p = /<title>Deploy Enterprise Applications\/Modules/
@@ -169,7 +180,8 @@ module Metasploit
               'method'  => 'GET',
               'headers' => {
                 'Cookie'  => "JSESSIONID=#{self.jsession}"
-              }
+              },
+              'requestcgi' => false
             }
             res = pass_request(opts)
 

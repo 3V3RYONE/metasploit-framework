@@ -46,7 +46,10 @@ module Metasploit
         # (see Base#check_setup)
         def check_setup
           begin
-            res = pass_request({'uri' => normalize_uri('/users/login')})
+            res = pass_request({
+              'uri' => normalize_uri('/users/login'),
+              'requestcgi' => false
+            })
             return "Connection failed" if res.nil?
 
             if res.code != 200
@@ -99,7 +102,8 @@ module Metasploit
             'headers' => {
               'Content-Type'   => 'application/x-www-form-urlencoded',
               'Cookie'         => "#{self.session_name}=#{self.session_id}"
-            }
+            },
+            'requestcgi' => false
           }
 
           pass_request(opts)
@@ -115,7 +119,10 @@ module Metasploit
         def try_login(credential)
 
           # Obtain a CSRF token first
-          res = pass_request({'uri' => normalize_uri('/users/login')})
+          res = pass_request({
+            'uri' => normalize_uri('/users/login'),
+            'requestcgi' => false  
+          })
           unless (res && res.code == 200 && res.body =~ /input name="authenticity_token" type="hidden" value="([^"]+)"/m)
             return {:status => Metasploit::Model::Login::Status::UNTRIED, :proof => res.body}
           end
@@ -129,7 +136,8 @@ module Metasploit
               'method'  => 'GET',
               'headers' => {
                 'Cookie'  => "#{self.session_name}=#{self.session_id}"
-              }
+              },
+              'requestcgi' => false
             }
             res = pass_request(opts)
             if (res && res.code == 200 && res.body.to_s =~ /New password for the User/)
