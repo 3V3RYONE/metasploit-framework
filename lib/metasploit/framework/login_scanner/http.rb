@@ -246,31 +246,6 @@ module Metasploit
           context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module}
 
           res = nil
-          
-          if http_trace
-            proc_httptrace = proc { |request, response|
-              request_color, response_color =
-                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
-              
-              request = request.to_s(headers_only: http_trace_headers_only)
-              print_line('#' * 20)
-              print_line('# Request:')
-              print_line('#' * 20)
-              print_line("%clr#{request_color}#{request}%clr")
-              
-              print_line('#' * 20)
-              print_line('# Response:')
-              print_line('#' * 20)
-              
-              if response
-                response = response.to_terminal_output(headers_only: http_trace_headers_only)
-                print_line("%clr#{response_color}#{response}%clr")
-              else
-                print_line('No response received')
-              end
-            }
-          end
-
 
           cli = Rex::Proto::Http::Client.new(
             rhost,
@@ -280,8 +255,7 @@ module Metasploit
             cli_ssl_version,
             cli_proxies,
             username,
-            password,
-            http_trace_proc: proc_httptrace
+            password
           )
           configure_http_client(cli)
 
@@ -358,7 +332,29 @@ module Metasploit
             'agent'                   => user_agent,
             'http_trace'              => http_trace,
             'http_trace_headers_only' => http_trace_headers_only,
-            'http_trace_colors'       => http_trace_colors
+            'http_trace_colors'       => http_trace_colors,
+            'proc_httptrace'          => http_trace ? proc { |request, response|
+              request_color, response_color =
+                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
+              
+              request = request.to_s(headers_only: http_trace_headers_only)
+              print_line('#' * 20)
+              print_line('# Request:')
+              print_line('#' * 20)
+              print_line("%clr#{request_color}#{request}%clr")
+              
+              print_line('#' * 20)
+              print_line('# Response:')
+              print_line('#' * 20)
+              
+              if response
+                response = response.to_terminal_output(headers_only: http_trace_headers_only)
+                print_line("%clr#{response_color}#{response}%clr")
+              else
+                print_line('No response received')
+              end
+            }
+ 
           )
 
           possible_params = {
