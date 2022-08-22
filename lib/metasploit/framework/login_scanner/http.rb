@@ -257,7 +257,6 @@ module Metasploit
             username,
             password
           )
-          require 'pry';binding.pry
           configure_http_client(cli)
 
           if realm
@@ -328,35 +327,35 @@ module Metasploit
         # This method is responsible for mapping the caller's datastore options to the
         # Rex::Proto::Http::Client configuration parameters.
         def configure_http_client(http_client)
-          p http_trace
+          http_trace_proc = proc { |request, response|
+            request_color, response_color =
+                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
+              
+            request = request.to_s(headers_only: http_trace_headers_only)
+            print_line('#' * 20)
+            print_line('# Request:')
+            print_line('#' * 20)
+            print_line("%clr#{request_color}#{request}%clr")
+            
+            print_line('#' * 20)
+            print_line('# Response:')
+            print_line('#' * 20)
+          
+            if response
+              response = response.to_terminal_output(headers_only: http_trace_headers_only)
+              print_line("%clr#{response_color}#{response}%clr")
+            else
+              print_line('No response received')
+            end
+          }
+
           http_client.set_config(
             'vhost'                   => vhost || host,
             'agent'                   => user_agent,
             'http_trace'              => http_trace,
             'http_trace_headers_only' => http_trace_headers_only,
             'http_trace_colors'       => http_trace_colors,
-            'http_trace_proc'          => http_trace ? proc { |request, response|
-              request_color, response_color =
-                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
-              
-              request = request.to_s(headers_only: http_trace_headers_only)
-              print_line('#' * 20)
-              print_line('# Request:')
-              print_line('#' * 20)
-              print_line("%clr#{request_color}#{request}%clr")
-              
-              print_line('#' * 20)
-              print_line('# Response:')
-              print_line('#' * 20)
-              
-              if response
-                response = response.to_terminal_output(headers_only: http_trace_headers_only)
-                print_line("%clr#{response_color}#{response}%clr")
-              else
-                print_line('No response received')
-              end
-            } : nil
- 
+            'http_trace_proc'          => http_trace ? http_trace_proc : nil
           )
 
           possible_params = {
