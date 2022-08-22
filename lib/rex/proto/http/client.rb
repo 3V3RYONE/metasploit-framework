@@ -102,6 +102,8 @@ class Client
       end
 
       self.config[var]=val
+      p var
+      p val
     end
   end
 
@@ -683,7 +685,9 @@ class Client
   end
 
   def httptrace_use_callback(req, res)
-    self.http_trace_proc.call(req, res) unless self.http_trace_proc.nil?
+    #p http_trace_proc
+    require 'pry';binding.pry
+    self.config["http_trace_proc"].call(req, res) unless self.config["http_trace_proc"].nil?
   end
 
   #

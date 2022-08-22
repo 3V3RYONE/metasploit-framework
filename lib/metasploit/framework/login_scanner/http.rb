@@ -257,6 +257,7 @@ module Metasploit
             username,
             password
           )
+          require 'pry';binding.pry
           configure_http_client(cli)
 
           if realm
@@ -327,13 +328,14 @@ module Metasploit
         # This method is responsible for mapping the caller's datastore options to the
         # Rex::Proto::Http::Client configuration parameters.
         def configure_http_client(http_client)
+          p http_trace
           http_client.set_config(
             'vhost'                   => vhost || host,
             'agent'                   => user_agent,
             'http_trace'              => http_trace,
             'http_trace_headers_only' => http_trace_headers_only,
             'http_trace_colors'       => http_trace_colors,
-            'proc_httptrace'          => http_trace ? proc { |request, response|
+            'http_trace_proc'          => http_trace ? proc { |request, response|
               request_color, response_color =
                 (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
               
@@ -353,7 +355,7 @@ module Metasploit
               else
                 print_line('No response received')
               end
-            }
+            } : nil
  
           )
 
