@@ -30,4 +30,16 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     end
   end
 
+  describe '#set_http_trace_proc' do
+    it 'configures http tracing' do
+      expect(subject.set_http_trace_proc(true)).to be_kind_of(Proc)
+    end
+  end
+
+  describe '#set_http_trace_proc' do
+    it 'does not log http tracing' do
+      expect(subject.set_http_trace_proc(false)).to be_nil
+    end
+  end
+
 end

@@ -742,4 +742,44 @@ RSpec.describe Rex::Proto::Http::Client do
       expect(request.to_s).to eq(expected)
     end
   end
+
+  context 'with HttpTrace logging'
+    let(:sample_request) {
+      "GET / HTTP/1.1\nHost: www.google.com"
+    }
+    let(:sample_response) {
+      "HTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl"
+    }
+    let(:http_trace_proc) { 
+      proc { |request, response|
+        puts("#" * 20)
+        puts("# Request : ")
+        puts("#" * 20)
+        puts("#{request}")
+        puts("#" * 20)
+        puts("# Response : ")
+        puts("#" * 20)
+        if response
+          puts("#{response}")
+        else
+          puts("No response received")
+        end
+      }
+    }
+    let(:expected_output) {
+      "####################\n# Request : \n####################\nGET / HTTP/1.1\nHost: www.google.com\n####################\n# Response : \n####################\nHTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\n"
+    }
+    let(:nil_response_output) {
+      "####################\n# Request : \n####################\nGET / HTTP/1.1\nHost: www.google.com\n####################\n# Response : \n####################\nNo response received\n"
+    } 
+
+    it 'should execute the proc when defined' do
+      cli = Rex::Proto::Http::Client.new('127.0.0.1', http_trace_proc: http_trace_proc)
+      expect {cli.httptrace_use_callback(sample_request, sample_response)}.to output(expected_output).to_stdout
+    end
+
+    it 'should should give ideal message for nil response' do
+      cli = Rex::Proto::Http::Client.new('127.0.0.1', http_trace_proc: http_trace_proc)
+      expect {cli.httptrace_use_callback(sample_request, nil)}.to output(nil_response_output).to_stdout
+    end
 end
