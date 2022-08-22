@@ -30,4 +30,19 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     end
   end
 
+  describe '#configure_http_client' do
+  let(:http_client) { instance_double Rex::Proto::Http::Client, set_config: nil }
+  before(:each) do
+    subject.configure_http_client(http_client)
+  end
+
+  it 'configures http tracing' do
+     expected_options = hash_including({
+       'http_trace' => true,
+       'http_trace_proc' => an_instance_of(Proc)
+     })
+     expect(http_client).to have_received(:set_config).with(expected_options)
+  end
+end
+
 end
