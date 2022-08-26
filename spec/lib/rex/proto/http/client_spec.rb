@@ -742,4 +742,40 @@ RSpec.describe Rex::Proto::Http::Client do
       expect(request.to_s).to eq(expected)
     end
   end
+
+  context 'with HttpTrace logging'
+    let(:sample_request) {
+      "GET / HTTP/1.1\nHost: www.google.com\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.81 Safari/537.36 Edg/97.0.1072.69"
+    }
+    let(:sample_response) {
+      "HTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\nCache-Control: private\nContent-Type: text/html; charset=UTF-8\nServer: gws\nContent-Length: 231"
+    }
+    let(:http_trace_proc) { 
+      proc { |request, response|
+        puts("#" * 20)
+        puts("# Request : ")
+        puts("#" * 20)
+        puts("#{request}")
+        puts("#" * 20)
+        puts("# Response : ")
+        puts("#" * 20)
+        if response
+          puts("#{response}")
+        else
+          puts("No response received")
+        end
+      }
+    }
+    let(:expected_output) {
+      "####################\n# Request : \n####################\nGET / HTTP/1.1\nHost: www.google.com\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.81 Safari/537.36 Edg/97.0.1072.69\n####################\n# Response : \n####################\nHTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\nCache-Control: private\nContent-Type: text/html; charset=UTF-8\nServer: gws\nContent-Length: 231"
+    }    
+    it 'should execute a proc when defined' do
+      cli = Rex::Proto::Http::Client.new('127.0.0.1', http_trace_proc: http_trace_proc)
+      expect {cli.httptrace_use_callback(sample_request, sample_response)}.to output(expected_output).to_stdout
+    end
+
+    it 'should should give ideal message for nil response' do
+      cli = Rex::Proto::Http::Client.new('127.0.0.1', http_trace_proc: http_trace_proc)
+      expect {cli.httptrace_use_callback(sample_request, nil)}.to output(expected_output).to_stdout
+    end
 end
