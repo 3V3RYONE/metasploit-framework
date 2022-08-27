@@ -325,9 +325,14 @@ module Metasploit
         end
 
 
-        # This method returns a proc to log HTTP requests and responses
-        # if datastore['HttpTrace'] is set.
+        # Defines a proc to log HTTP requests and responses
+        #
+        # @param http_trace [Bool] A Boolean representing the datastore['HttpTrace']
+        # to check if HttpTrace is set or unset.
+        #
+        # @return [Proc] A Proc object to log HTTP requests and responses
         def set_http_trace_proc(http_trace)
+          proc_httptrace = nil
           if http_trace
             proc_httptrace = proc { |request, response|
               request_color, response_color =
