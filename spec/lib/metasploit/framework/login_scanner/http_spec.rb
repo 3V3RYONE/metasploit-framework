@@ -4,7 +4,6 @@ require 'metasploit/framework/login_scanner/http'
 
 RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
 
-  include_context 'Msf::UIDriver'
   it_behaves_like 'Metasploit::Framework::LoginScanner::Base',  has_realm_key: true, has_default_realm: false
   it_behaves_like 'Metasploit::Framework::LoginScanner::RexSocket'
   it_behaves_like 'Metasploit::Framework::LoginScanner::HTTP'
@@ -23,12 +22,6 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     allow_any_instance_of(Rex::Proto::Http::Client).to receive(:connect)
   end
 
-
-
-  #def execute_proc(procc)
-  #  procc.callback
-  #end
-
   describe '#send_request' do
     context 'when a valid request is sent' do
       it 'returns a response object' do
@@ -37,25 +30,13 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     end
   end
 
-  #describe '#check_output' do
-  #  context 'when proc a executed' do
-  #    it 'print requests and responses' do
-  #      dbl = double
-  #      let(:request) {"Hi Request"}
-  #      let(:response) {"Hi Response"}
-  #      allow(dbl).to receive(:foo) { |&block| block.call(request, response) }
-  #      expect { |probe| dbl.foo(&probe) }.to yield_with_args(14)
-  #    end
-  #  end
-  #end
-
   describe '#set_http_trace_proc' do
     it 'configures http tracing' do
       expect(subject.set_http_trace_proc(true)).to be_kind_of(Proc)
     end
   end
 
-  describe '#unset_http_trace_proc' do
+  describe '#set_http_trace_proc' do
     it 'does not log http tracing' do
       expect(subject.set_http_trace_proc(false)).to be_nil
     end
