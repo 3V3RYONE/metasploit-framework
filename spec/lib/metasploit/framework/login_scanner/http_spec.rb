@@ -31,13 +31,34 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   end
 
   describe '#set_http_trace_proc' do
-    it 'configures http tracing' do
+    let(:sample_request) {
+      "GET / HTTP/1.1\nHost: www.google.com"
+    }
+    let(:sample_response) {
+      "HTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl"
+    }
+    let(:expected_output) {
+      "####################\n# Request : \n####################\nGET / HTTP/1.1\nHost: www.google.com\n####################\n# Response : \n####################\nHTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\n"
+    }
+    let(:nil_response_output) {
+      "####################\n# Request : \n####################\nGET / HTTP/1.1\nHost: www.google.com\n####################\n# Response : \n####################\nNo response received\n"
+    }
+
+    it 'returns a proc object when HttpTrace is set to true' do
       expect(subject.set_http_trace_proc(true)).to be_kind_of(Proc)
     end
+
+    #it 'should execute the proc when defined' do
+    #  expect { subject.set_http_trace_proc(true).call(sample_request, sample_response) }.to output(expected_output).to_stdout
+    #end
+
+    #it 'should give ideal message for nil response' do
+    #  expect { subject.set_http_trace_proc(true).call(sample_request, nil) }.to output(nil_response_output).to_stdout
+    #end
   end
 
   describe '#set_http_trace_proc' do
-    it 'does not log http tracing' do
+    it 'returns nil when HttpTrace is set to false' do
       expect(subject.set_http_trace_proc(false)).to be_nil
     end
   end

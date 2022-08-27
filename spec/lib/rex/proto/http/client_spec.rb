@@ -778,7 +778,7 @@ RSpec.describe Rex::Proto::Http::Client do
       expect {cli.httptrace_use_callback(sample_request, sample_response)}.to output(expected_output).to_stdout
     end
 
-    it 'should should give ideal message for nil response' do
+    it 'should give ideal message for nil response' do
       cli = Rex::Proto::Http::Client.new('127.0.0.1', http_trace_proc: http_trace_proc)
       expect {cli.httptrace_use_callback(sample_request, nil)}.to output(nil_response_output).to_stdout
     end
