@@ -14,7 +14,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   it_behaves_like 'Metasploit::Framework::LoginScanner::HTTP'
 
   subject do
-    described_class.new
+    described_class.new(driver)
   end
 
   let(:response) { Rex::Proto::Http::Response.new(200, 'OK') }
