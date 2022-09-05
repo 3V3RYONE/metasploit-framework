@@ -1,5 +1,6 @@
 require 'metasploit/framework/login_scanner/base'
 require 'metasploit/framework/login_scanner/rex_socket'
+require 'rex/ui/text/output/stdio'
 
 module Metasploit
   module Framework
@@ -246,7 +247,7 @@ module Metasploit
           context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module}
 
           res = nil
-          http_trace_proc = set_http_trace_proc(http_trace)
+          http_trace_proc = set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
           
           cli = Rex::Proto::Http::Client.new(
             rhost,
@@ -331,14 +332,18 @@ module Metasploit
         # to check if HttpTrace is set or unset.
         #
         # @return [Proc] A Proc object to log HTTP requests and responses
-        def set_http_trace_proc(http_trace)
+        def set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
           proc_httptrace = nil
           if http_trace
             proc_httptrace = proc { |request, response|
               request_color, response_color =
                 (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
               
-              request = request.to_s(headers_only: http_trace_headers_only)
+              if http_trace_headers_only
+                request = request.to_s(headers_only: http_trace_headers_only)
+              else
+                request = request.to_s()
+              end
               print_line('#' * 20)
               print_line('# Request:')
               print_line('#' * 20)
@@ -349,7 +354,11 @@ module Metasploit
               print_line('#' * 20)
               
               if response
-                response = response.to_terminal_output(headers_only: http_trace_headers_only)
+                if http_trace_headers_only
+                  response = response.to_terminal_output(headers_only: http_trace_headers_only)
+                else
+                  response = response.to_terminal_output()
+                end
                 print_line("%clr#{response_color}#{response}%clr")
               else
                 print_line('No response received')
