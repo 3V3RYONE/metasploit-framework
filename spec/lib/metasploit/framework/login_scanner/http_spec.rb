@@ -5,8 +5,16 @@ require 'rex'
 
 RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
-  def print_line(msg='')
-    puts(msg+'\n')
+  class Metasploit::Framework::LoginScanner::HTTP
+    def print_line(mesg='')
+      print(mesg+"\n")
+    end
+  end
+
+  class Rex::Ui::Text::Output::Stdio
+    def support_color?
+      return false
+    end
   end
 
   it_behaves_like 'Metasploit::Framework::LoginScanner::Base',  has_realm_key: true, has_default_realm: false
@@ -14,7 +22,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   it_behaves_like 'Metasploit::Framework::LoginScanner::HTTP'
 
   subject do
-    described_class.new(driver)
+    described_class.new
   end
 
   let(:response) { Rex::Proto::Http::Response.new(200, 'OK') }
