@@ -339,11 +339,8 @@ module Metasploit
               request_color, response_color =
                 (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
               
-              if http_trace_headers_only
-                request = request.to_s(headers_only: http_trace_headers_only)
-              else
-                request = request.to_s()
-              end
+              request = request.to_s()
+
               print_line('#' * 20)
               print_line('# Request:')
               print_line('#' * 20)
@@ -354,11 +351,8 @@ module Metasploit
               print_line('#' * 20)
               
               if response
-                if http_trace_headers_only
-                  response = response.to_terminal_output(headers_only: http_trace_headers_only)
-                else
-                  response = response.to_terminal_output()
-                end
+                response = response.to_terminal_output(headers_only: http_trace_headers_only)
+
                 print_line("%clr#{response_color}#{response}%clr")
               else
                 print_line('No response received')

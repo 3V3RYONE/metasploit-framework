@@ -11,6 +11,18 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     end
   end
 
+  class Metasploit::Framework::LoginScanner::HTTP
+    def to_terminal_output(headers_only: false)
+      output_packet(true, headers_only: headers_only)
+    end
+  end
+
+  class Metasploit::Framework::LoginScanner::HTTP
+    def to_s(headers_only: false)
+      output_packet(false, headers_only: headers_only)
+    end
+  end
+
   class Rex::Ui::Text::Output::Stdio
     def support_color?
       return false
@@ -51,10 +63,10 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       "HTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl"
     }
     let(:expected_output) {
-      "####################\n# Request:\n####################\nGET / HTTP/1.1\nHost: www.google.com\n####################\n# Response:\n####################\nHTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\n"
+      "####################\n# Request:\n####################\n%clr%bld%redGET / HTTP/1.1\nHost: www.google.com%clr\n####################\n# Response:\n####################\nHTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\n"
     }
     let(:nil_response_output) {
-      "####################\n# Request:\n####################\nGET / HTTP/1.1\nHost: www.google.com\n####################\n# Response:\n####################\nNo response received\n"
+      "####################\n# Request:\n####################\n%clr%bld%redGET / HTTP/1.1\nHost: www.google.com%clr\n####################\n# Response:\n####################\nNo response received\n"
     }
 
     it 'returns a proc object when HttpTrace is set to true' do
