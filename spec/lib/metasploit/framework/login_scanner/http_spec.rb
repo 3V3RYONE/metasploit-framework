@@ -7,11 +7,11 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
   include_context 'Msf::Simple::Framework'
 
-  class Metasploit::Framework::LoginScanner::HTTP
-    def print_line(mesg='')
-      print(mesg+"\n")
-    end
-  end
+  #class Metasploit::Framework::LoginScanner::HTTP
+  #  def print_line(mesg='')
+  #    print(mesg+"\n")
+  #  end
+  #end
 
   class Rex::Proto::Http::Packet
     def to_terminal_output(headers_only=false)
@@ -35,7 +35,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
 
   subject do
     #require 'pry';binding.pry
-    described_class.new(driver)
+    described_class.new
   end
 
   let(:response) { Rex::Proto::Http::Response.new(200, 'OK') }
