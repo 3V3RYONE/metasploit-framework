@@ -7,14 +7,14 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
   include_context 'Msf::DBManager'
   include_context 'Msf::Simple::Framework'
-  
-  let(:driver) do
-    instance = double('Rex::Ui::Text::Output::Stdio', framework: framework)
-    #require 'pry';binding.pry
-    allow(instance).to receive(:print_line) { |arg| $stdout.puts arg }
-    capture_logging(instance)
-    instance
-  end
+
+  # let(:driver) do
+  #   instance = double('Rex::Ui::Text::Output::Stdio', framework: framework)
+  #   #require 'pry';binding.pry
+  #   allow(instance).to receive(:print_line) { |arg| $stdout.puts arg }
+  #   capture_logging(instance)
+  #   instance
+  # end
 
   #class Metasploit::Framework::LoginScanner::HTTP
   #  def print_line(mesg='')
@@ -42,9 +42,11 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   it_behaves_like 'Metasploit::Framework::LoginScanner::RexSocket'
   it_behaves_like 'Metasploit::Framework::LoginScanner::HTTP'
 
+  let(:mock_module) { instance_double Msf::Exploit }
+
   subject do
-    #require 'pry';binding.pry
-    described_class.new(driver)
+    capture_logging(mock_module)
+    described_class.new({ 'framework' => framework, 'framework_module' => mock_module })
   end
 
   let(:response) { Rex::Proto::Http::Response.new(200, 'OK') }
@@ -72,13 +74,41 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       "GET / HTTP/1.1\nHost: www.google.com"
     }
     let(:sample_response) {
-      "HTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl"
+      res = Rex::Proto::Http::Response.new
+      allow(res).to receive(:body).and_return("HTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl")
+      res
     }
     let(:expected_output) {
-      "####################\n# Request:\n####################\n%clr%bld%redGET / HTTP/1.1\nHost: www.google.com%clr\n####################\n# Response:\n####################\nHTTP/1.1 302 Found\nLocation: https://www.google.com/?gws_rd=ssl\n"
+      [
+        "####################",
+        "# Request:",
+        "####################",
+        "%clr%bld%redGET / HTTP/1.1",
+        "Host: www.google.com%clr",
+        "####################",
+        "# Response:",
+        "####################",
+        "%clr%bld%bluHTTP/1.1 200 OK\r",
+        "\r",
+        "HTTP/1.1 302 Found",
+        "Location: https://www.google.com/?gws_rd=ssl%clr"
+      ]
     }
     let(:nil_response_output) {
-      "####################\n# Request:\n####################\n%clr%bld%redGET / HTTP/1.1\nHost: www.google.com%clr\n####################\n# Response:\n####################\nNo response received\n"
+      [
+        "####################",
+        "# Request:",
+        "####################",
+        "%clr%bld%redGET / HTTP/1.1",
+        "Host: www.google.com%clr",
+        "####################",
+        "# Response:",
+        "####################",
+        "%clr%bld%bluHTTP/1.1 200 OK\r",
+        "\r",
+        "HTTP/1.1 302 Found",
+        "Location: https://www.google.com/?gws_rd=ssl%clr"
+      ]
     }
 
     it 'returns a proc object when HttpTrace is set to true' do
@@ -86,11 +116,13 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     end
 
     it 'should execute the proc when defined' do
-      expect { subject.set_http_trace_proc(true, false, nil).call(sample_request, sample_response) }.to output(expected_output).to_stdout
+      subject.set_http_trace_proc(true, false, nil).call(sample_request, sample_response)
+      expect(@output).to eq expected_output
     end
 
     it 'should give ideal message for nil response' do
-      expect { subject.set_http_trace_proc(true, false, nil).call(sample_request, nil) }.to output(nil_response_output).to_stdout
+      subject.set_http_trace_proc(true, false, nil).call(sample_request, sample_response)
+      expect(@output).to eq nil_response_output
     end
   end
 
