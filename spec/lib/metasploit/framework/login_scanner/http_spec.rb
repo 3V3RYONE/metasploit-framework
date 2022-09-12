@@ -7,6 +7,14 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
   include_context 'Msf::DBManager'
   include_context 'Msf::Simple::Framework'
+  
+  let(:driver) do
+    instance = double('Rex::Ui::Text::Output::Stdio', framework: framework)
+    #require 'pry';binding.pry
+    allow(instance).to receive(:print_line) { |arg| $stdout.puts arg }
+    capture_logging(instance)
+    instance
+  end
 
   #class Metasploit::Framework::LoginScanner::HTTP
   #  def print_line(mesg='')
@@ -36,7 +44,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
 
   subject do
     #require 'pry';binding.pry
-    described_class.new
+    described_class.new(driver)
   end
 
   let(:response) { Rex::Proto::Http::Response.new(200, 'OK') }
@@ -45,6 +53,8 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     allow_any_instance_of(Rex::Proto::Http::Client).to receive(:request_cgi).with(any_args)
     allow_any_instance_of(Rex::Proto::Http::Client).to receive(:send_recv).with(any_args).and_return(response)
     allow_any_instance_of(Rex::Proto::Http::Client).to receive(:set_config).with(any_args)
+    #allow().to receive(:print_line) { |arg| $stdout.puts arg }
+    allow(subject).to receive(:print) { |arg| $stdout.puts arg }
     allow_any_instance_of(Rex::Proto::Http::Client).to receive(:close)
     allow_any_instance_of(Rex::Proto::Http::Client).to receive(:connect)
   end
