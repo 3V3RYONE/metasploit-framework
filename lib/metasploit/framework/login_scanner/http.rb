@@ -339,27 +339,25 @@ module Metasploit
               request_color, response_color =
                 (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
               
-              if http_trace_headers_only
-                request = request.to_s(http_trace_headers_only)
-              else
-                request = request.to_s()
-              end
+              #require 'pry';binding.pry
+              #request = request.to_s(headers_only: http_trace_headers_only)
 
-              print_line('#' * 20)
-              print_line('# Request:')
-              print_line('#' * 20)
-              print_line("%clr#{request_color}#{request}%clr")
+              framework_module.print_line('#' * 20)
+              framework_module.print_line('# Request:')
+              framework_module.print_line('#' * 20)
+              framework_module.print_line("%clr#{request_color}#{request}%clr")
               
-              print_line('#' * 20)
-              print_line('# Response:')
-              print_line('#' * 20)
+              framework_module.print_line('#' * 20)
+              framework_module.print_line('# Response:')
+              framework_module.print_line('#' * 20)
               
               if response
-                response = response.to_terminal_output(http_trace_headers_only)
+                #require 'pry';binding.pry
+                response = response.to_terminal_output(headers_only: http_trace_headers_only)
 
-                print_line("%clr#{response_color}#{response}%clr")
+                framework_module.print_line("%clr#{response_color}#{response}%clr")
               else
-                print_line('No response received')
+                framework_module.print_line('No response received')
               end
             }
           end

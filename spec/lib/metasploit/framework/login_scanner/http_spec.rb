@@ -5,6 +5,7 @@ require 'rex'
 
 RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
+  include_context 'Msf::DBManager'
   include_context 'Msf::Simple::Framework'
 
   #class Metasploit::Framework::LoginScanner::HTTP
@@ -13,21 +14,21 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   #  end
   #end
 
-  class Rex::Proto::Http::Packet
-    def to_terminal_output(headers_only=false)
-      output_packet(true, headers_only=headers_only)
-    end
+  #class Rex::Proto::Http::Packet
+  #  def to_terminal_output(headers_only=false)
+  #    output_packet(true, headers_only=headers_only)
+  #  end
 
-    def to_s(headers_only=false)
-      output_packet(false, headers_only=headers_only)
-    end
-  end
+  #  def to_s(headers_only=false)
+  #    output_packet(false, headers_only=headers_only)
+  #  end
+  #end
 
-  class Rex::Ui::Text::Output::Stdio
-    def support_color?
-      return false
-    end
-  end
+  #class Rex::Ui::Text::Output::Stdio
+  #  def support_color?
+  #    return false
+  #  end
+  #end
 
   it_behaves_like 'Metasploit::Framework::LoginScanner::Base',  has_realm_key: true, has_default_realm: false
   it_behaves_like 'Metasploit::Framework::LoginScanner::RexSocket'
