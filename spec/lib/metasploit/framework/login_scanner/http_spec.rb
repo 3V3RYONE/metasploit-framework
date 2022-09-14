@@ -67,6 +67,20 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
+        "%clr%bld%redGET / HTTP/1.1",
+        "Host: www.google.com%clr",
+        "####################",
+        "# Response:",
+        "####################",
+        "No response received"
+      ]
+    }
+
+    let(:nil_request_output) {
+      [
+        "####################",
+        "# Request:",
+        "####################",
         "%clr%bld%red%clr",
         "####################",
         "# Response:",
@@ -74,6 +88,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "No response received"
       ]
     }
+
 
     let(:headers_only_output) {
       [
@@ -133,8 +148,13 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     end 
 
     it 'should give "no response received" message for nil response' do
-      subject.set_http_trace_proc(true, false, nil).call(nil, nil)
+      subject.set_http_trace_proc(true, false, nil).call(sample_request, nil)
       expect(@output).to eq nil_response_output
+    end
+
+    it 'should log empty message for nil request' do
+      subject.set_http_trace_proc(true, false, nil).call(nil, nil)
+      expect(@output).to eq nil_request_output
     end
 
     it 'should log HTTP headers only when HttpTraceHeadersOnly is set' do
