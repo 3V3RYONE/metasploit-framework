@@ -325,13 +325,13 @@ module Metasploit
         # @param http_trace [Bool] A Boolean representing the datastore['HttpTrace']
         # to check if HttpTrace is set or unset.
         #
-        # @return [Proc] A Proc object to log HTTP requests and responses
+        # @return [Proc] A Proc object to log HTTP requests and responses, or nil if the datastore['HttpTrace'] is unset
         def set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
           proc_httptrace = nil
           if http_trace
             proc_httptrace = proc { |request, response|
               request_color, response_color =
-                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
+                (http_trace_colors || 'red/blu').split('/').map { |color| color.blank? ? '' : "%bld%#{color}" }
 
               request = request.to_s(headers_only: http_trace_headers_only)
               framework_module.print_line('#' * 20)
