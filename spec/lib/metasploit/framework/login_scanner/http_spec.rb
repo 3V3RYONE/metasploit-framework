@@ -46,7 +46,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       res
     }
 
-    let(:expected_output) {
+    let(:normal_request_response_output) {
       [
         "####################",
         "# Request:",
@@ -170,16 +170,14 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       ]
     }
 
-
-
     it 'returns a proc object when HttpTrace is set to true' do
       expect(subject.set_http_trace_proc(true, false, nil)).to be_kind_of(Proc)
     end
 
     it 'should execute the proc when defined' do
       subject.set_http_trace_proc(true, false, nil).call(sample_request, sample_response)
-      expect(@output).to eq expected_output
-    end 
+      expect(@output).to eq normal_request_response_output
+    end
 
     it 'should give "no response received" message for nil response' do
       subject.set_http_trace_proc(true, false, nil).call(sample_request, nil)
@@ -198,7 +196,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
 
     it 'should log HTTP requests and responses with body when HttpTraceHeadersOnly is unset' do
       subject.set_http_trace_proc(true, nil, nil).call(sample_request, sample_response)
-      expect(@output).to eq expected_output
+      expect(@output).to eq normal_request_response_output
     end
 
     it 'should log HTTP requests and responses in the specified color' do
