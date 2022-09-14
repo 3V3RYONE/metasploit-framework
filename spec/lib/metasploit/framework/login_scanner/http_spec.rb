@@ -1,11 +1,9 @@
 
 require 'spec_helper'
 require 'metasploit/framework/login_scanner/http'
-require 'rex'
 
 RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
-  include_context 'Msf::DBManager'
   include_context 'Msf::Simple::Framework'
   
   it_behaves_like 'Metasploit::Framework::LoginScanner::Base',  has_realm_key: true, has_default_realm: false
@@ -41,11 +39,13 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     let(:sample_request) {
       "GET / HTTP/1.1\nHost: www.google.com"
     }
+
     let(:sample_response) {
       res = Rex::Proto::Http::Response.new(302,'Found')
       allow(res).to receive(:body).and_return("Location: https://www.google.com/?gws_rd=ssl")
       res
     }
+
     let(:expected_output) {
       [
         "####################",
@@ -61,6 +61,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "Location: https://www.google.com/?gws_rd=ssl%clr"
       ]
     }
+
     let(:nil_response_output) {
       [
         "####################",
@@ -74,6 +75,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "No response received"
       ]
     }
+
     let(:headers_only_output) {
       [
         "####################",
@@ -89,6 +91,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "%clr"
       ]
     }
+
     let(:http_trace_colors_output) {
       [
         "####################",
@@ -124,14 +127,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       expect(@output).to eq headers_only_output
     end
 
-    it 'should log the requests and responses in the specified color' do
+    it 'should log HTTP requests and responses in the specified color' do
       subject.set_http_trace_proc(true, false, 'blu/grn').call(sample_request, sample_response)
       expect(@output).to eq http_trace_colors_output
     end
-  end
 
-  describe '#set_http_trace_proc' do
-    it 'returns nil when HttpTrace is set to false' do
+    it 'returns nil when HttpTrace is unset' do
       expect(subject.set_http_trace_proc(false, false, nil)).to be_nil
     end
   end
