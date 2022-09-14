@@ -138,6 +138,40 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       ]
     }
 
+    let(:http_trace_single_color_output_leading_slash) {
+      [
+        "####################",
+        "# Request:",
+        "####################",
+        "%clr%bld%GET / HTTP/1.1",
+        "Host: www.google.com%clr",
+        "####################",
+        "# Response:",
+        "####################",
+        "%clr%bld%yelHTTP/1.1 302 Found\r",
+        "\r",
+        "Location: https://www.google.com/?gws_rd=ssl%clr"
+      ]
+    }
+
+    let(:http_trace_no_color_output) {
+      [
+        "####################",
+        "# Request:",
+        "####################",
+        "%clrGET / HTTP/1.1",
+        "Host: www.google.com%clr",
+        "####################",
+        "# Response:",
+        "####################",
+        "%clrHTTP/1.1 302 Found\r",
+        "\r",
+        "Location: https://www.google.com/?gws_rd=ssl%clr"
+      ]
+    }
+
+
+
     it 'returns a proc object when HttpTrace is set to true' do
       expect(subject.set_http_trace_proc(true, false, nil)).to be_kind_of(Proc)
     end
@@ -175,6 +209,16 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     it 'should only log HTTP request in color when only one colour is specified' do
       subject.set_http_trace_proc(true, false, 'yel/').call(sample_request, sample_response)
       expect(@output).to eq http_trace_single_color_output
+    end
+
+    it 'should only log HTTP response in color when only one colour is specified after a leading "/"' do
+      subject.set_http_trace_proc(true, false, '/yel').call(sample_request, sample_response)
+      expect(@output).to eq http_trace_single_color_output_leading_slash
+    end
+
+    it 'should not log HTTP request and response in color when HttpTraceColors is set to "/"' do
+      subject.set_http_trace_proc(true, false, '/').call(sample_request, sample_response)
+      expect(@output).to eq http_trace_no_color_output
     end
 
     it 'should only log HTTP request in color when only one color is specified without "/"' do
