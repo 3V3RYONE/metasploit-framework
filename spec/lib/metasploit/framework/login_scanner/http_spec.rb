@@ -143,7 +143,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clr%bld%GET / HTTP/1.1",
+        "%clrGET / HTTP/1.1",
         "Host: www.google.com%clr",
         "####################",
         "# Response:",

@@ -337,7 +337,7 @@ module Metasploit
           if http_trace
             proc_httptrace = proc { |request, response|
               request_color, response_color =
-                (http_trace_colors || 'red/blu').split('/').map { |color| "%bld%#{color}" }
+                (http_trace_colors || 'red/blu').split('/').map { |color| color.blank? ? "" : "%bld%#{color}" }
               
               framework_module.print_line('#' * 20)
               framework_module.print_line('# Request:')
