@@ -37,7 +37,10 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
 
   describe '#set_http_trace_proc' do
     let(:sample_request) {
-      "GET / HTTP/1.1\nHost: www.google.com"
+      req = Rex::Proto::Http::ClientRequest.new({"agent" => "Met",
+                                                 "data" => "bufaction=verifyLogin&user=admin&password=turnkey"
+      })
+      req
     }
 
     let(:sample_response) {
@@ -51,8 +54,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clr%bld%redGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clr%bld%redGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "\r",
+        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
         "####################",
         "# Response:",
         "####################",
@@ -67,36 +74,29 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clr%bld%redGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clr%bld%redGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "\r",
+        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
         "####################",
         "# Response:",
         "####################",
         "No response received"
       ]
-    }
-
-    let(:nil_request_output) {
-      [
-        "####################",
-        "# Request:",
-        "####################",
-        "%clr%bld%red%clr",
-        "####################",
-        "# Response:",
-        "####################",
-        "No response received"
-      ]
-    }
-
+    } 
 
     let(:headers_only_output) {
       [
         "####################",
         "# Request:",
         "####################",
-        "%clr%bld%redGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clr%bld%redGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "%clr",
         "####################",
         "# Response:",
         "####################",
@@ -111,8 +111,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clr%bld%bluGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clr%bld%bluGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "\r",
+        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
         "####################",
         "# Response:",
         "####################",
@@ -127,8 +131,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clr%bld%yelGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clr%bld%yelGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "\r",
+        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
         "####################",
         "# Response:",
         "####################",
@@ -143,8 +151,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clrGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clrGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "\r",
+        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
         "####################",
         "# Response:",
         "####################",
@@ -159,8 +171,12 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         "####################",
         "# Request:",
         "####################",
-        "%clrGET / HTTP/1.1",
-        "Host: www.google.com%clr",
+        "%clrGET / HTTP/1.1\r",
+        "Host: \r",
+        "User-Agent: Met\r",
+        "Content-Length: 49\r",
+        "\r",
+        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
         "####################",
         "# Response:",
         "####################",
@@ -183,12 +199,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       subject.set_http_trace_proc(true, false, nil).call(sample_request, nil)
       expect(@output).to eq nil_response_output
     end
-
-    it 'should log empty message for nil request' do
-      subject.set_http_trace_proc(true, false, nil).call(nil, nil)
-      expect(@output).to eq nil_request_output
-    end
-
+ 
     it 'should log HTTP headers only when HttpTraceHeadersOnly is set' do
       subject.set_http_trace_proc(true, true, nil).call(sample_request, sample_response)
       expect(@output).to eq headers_only_output
