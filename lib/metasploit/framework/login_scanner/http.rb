@@ -328,9 +328,9 @@ module Metasploit
 
         # Defines a proc to log HTTP requests and responses
         #
-        # @param http_trace [Bool] A Boolean representing the datastore['HttpTrace']
-        # to check if HttpTrace is set or unset.
-        #
+        # @param http_trace [Bool] A Boolean representing the datastore['HttpTrace'] to check if HttpTrace is set or unset.
+        # @param http_trace_headers_only [Bool] A Boolean representing the datastore['HttpTraceHeadersOnly'] to check if only HTTP headers need to be logged.
+        # @param http_trace_colors [String] A string representing the datastore['HttpTraceColors'] to specify the colors in which request and response need to be logged.
         # @return [Proc] A Proc object to log HTTP requests and responses, or nil if the datastore['HttpTrace'] is unset
         def set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
           proc_httptrace = nil
@@ -339,6 +339,8 @@ module Metasploit
               request_color, response_color =
                 (http_trace_colors || 'red/blu').split('/').map { |color| color.blank? ? "" : "%bld%#{color}" }
               
+              #require 'pry';binding.pry
+              request = request.to_s(headers_only: http_trace_headers_only)
               framework_module.print_line('#' * 20)
               framework_module.print_line('# Request:')
               framework_module.print_line('#' * 20)
