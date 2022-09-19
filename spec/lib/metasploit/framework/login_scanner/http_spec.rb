@@ -1,12 +1,11 @@
-
 require 'spec_helper'
 require 'metasploit/framework/login_scanner/http'
 
 RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   include_context 'Msf::UIDriver'
   include_context 'Msf::Simple::Framework'
-  
-  it_behaves_like 'Metasploit::Framework::LoginScanner::Base',  has_realm_key: true, has_default_realm: false
+
+  it_behaves_like 'Metasploit::Framework::LoginScanner::Base', has_realm_key: true, has_default_realm: false
   it_behaves_like 'Metasploit::Framework::LoginScanner::RexSocket'
   it_behaves_like 'Metasploit::Framework::LoginScanner::HTTP'
 
@@ -30,167 +29,168 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
   describe '#send_request' do
     context 'when a valid request is sent' do
       it 'returns a response object' do
-        expect(subject.send_request({'uri'=>'/'})).to be_kind_of(Rex::Proto::Http::Response)
+        expect(subject.send_request({ 'uri' => '/' })).to be_kind_of(Rex::Proto::Http::Response)
       end
     end
   end
 
   describe '#set_http_trace_proc' do
-    let(:sample_request) {
-      req = Rex::Proto::Http::ClientRequest.new({"agent" => "Met",
-                                                 "data" => "bufaction=verifyLogin&user=admin&password=turnkey"
+    let(:sample_request) do
+      req = Rex::Proto::Http::ClientRequest.new({
+        'agent' => 'Met',
+        'data' => 'bufaction=verifyLogin&user=admin&password=turnkey'
       })
       req
-    }
+    end
 
-    let(:sample_response) {
-      res = Rex::Proto::Http::Response.new(302,'Found')
-      allow(res).to receive(:body).and_return("Location: https://www.google.com/?gws_rd=ssl")
+    let(:sample_response) do
+      res = Rex::Proto::Http::Response.new(302, 'Found')
+      allow(res).to receive(:body).and_return('Location: https://www.google.com/?gws_rd=ssl')
       res
-    }
+    end
 
-    let(:normal_request_response_output) {
+    let(:normal_request_response_output) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clr%bld%redGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
         "\r",
-        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
-        "####################",
-        "# Response:",
-        "####################",
+        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
+        '####################',
+        '# Response:',
+        '####################',
         "%clr%bld%bluHTTP/1.1 302 Found\r",
         "\r",
-        "Location: https://www.google.com/?gws_rd=ssl%clr"
+        'Location: https://www.google.com/?gws_rd=ssl%clr'
       ]
-    }
+    end
 
-    let(:nil_response_output) {
+    let(:nil_response_output) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clr%bld%redGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
         "\r",
-        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
-        "####################",
-        "# Response:",
-        "####################",
-        "No response received"
+        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
+        '####################',
+        '# Response:',
+        '####################',
+        'No response received'
       ]
-    } 
+    end
 
-    let(:headers_only_output) {
+    let(:headers_only_output) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clr%bld%redGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
-        "%clr",
-        "####################",
-        "# Response:",
-        "####################",
+        '%clr',
+        '####################',
+        '# Response:',
+        '####################',
         "%clr%bld%bluHTTP/1.1 302 Found\r",
         "\r",
-        "%clr"
+        '%clr'
       ]
-    }
+    end
 
-    let(:http_trace_colors_output) {
+    let(:http_trace_colors_output) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clr%bld%bluGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
         "\r",
-        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
-        "####################",
-        "# Response:",
-        "####################",
+        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
+        '####################',
+        '# Response:',
+        '####################',
         "%clr%bld%grnHTTP/1.1 302 Found\r",
         "\r",
-        "Location: https://www.google.com/?gws_rd=ssl%clr"
+        'Location: https://www.google.com/?gws_rd=ssl%clr'
       ]
-    }
+    end
 
-    let(:http_trace_single_color_output) {
+    let(:http_trace_single_color_output) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clr%bld%yelGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
         "\r",
-        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
-        "####################",
-        "# Response:",
-        "####################",
+        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
+        '####################',
+        '# Response:',
+        '####################',
         "%clrHTTP/1.1 302 Found\r",
         "\r",
-        "Location: https://www.google.com/?gws_rd=ssl%clr"
+        'Location: https://www.google.com/?gws_rd=ssl%clr'
       ]
-    }
+    end
 
-    let(:http_trace_single_color_output_leading_slash) {
+    let(:http_trace_single_color_output_leading_slash) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clrGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
         "\r",
-        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
-        "####################",
-        "# Response:",
-        "####################",
+        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
+        '####################',
+        '# Response:',
+        '####################',
         "%clr%bld%yelHTTP/1.1 302 Found\r",
         "\r",
-        "Location: https://www.google.com/?gws_rd=ssl%clr"
+        'Location: https://www.google.com/?gws_rd=ssl%clr'
       ]
-    }
+    end
 
-    let(:http_trace_no_color_output) {
+    let(:http_trace_no_color_output) do
       [
-        "####################",
-        "# Request:",
-        "####################",
+        '####################',
+        '# Request:',
+        '####################',
         "%clrGET / HTTP/1.1\r",
         "Host: \r",
         "User-Agent: Met\r",
         "Content-Length: 49\r",
         "\r",
-        "bufaction=verifyLogin&user=admin&password=turnkey%clr",
-        "####################",
-        "# Response:",
-        "####################",
+        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
+        '####################',
+        '# Response:',
+        '####################',
         "%clrHTTP/1.1 302 Found\r",
         "\r",
-        "Location: https://www.google.com/?gws_rd=ssl%clr"
+        'Location: https://www.google.com/?gws_rd=ssl%clr'
       ]
-    }
+    end
 
     it 'returns a proc object when HttpTrace is set to true' do
       expect(subject.set_http_trace_proc(true, false, nil)).to be_kind_of(Proc)
     end
 
-    it 'should execute the proc when defined' do
+    it 'should output the provided request and response with headers when HttpTrace is set' do
       subject.set_http_trace_proc(true, false, nil).call(sample_request, sample_response)
       expect(@output).to eq normal_request_response_output
     end
@@ -199,7 +199,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       subject.set_http_trace_proc(true, false, nil).call(sample_request, nil)
       expect(@output).to eq nil_response_output
     end
- 
+
     it 'should log HTTP headers only when HttpTraceHeadersOnly is set' do
       subject.set_http_trace_proc(true, true, nil).call(sample_request, sample_response)
       expect(@output).to eq headers_only_output
@@ -210,17 +210,17 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       expect(@output).to eq normal_request_response_output
     end
 
-    it 'should log HTTP requests and responses in the specified color' do
+    it 'should log HTTP requests and responses in the respective colors specified' do
       subject.set_http_trace_proc(true, false, 'blu/grn').call(sample_request, sample_response)
       expect(@output).to eq http_trace_colors_output
     end
 
-    it 'should only log HTTP request in color when only one colour is specified' do
+    it 'should only log HTTP request in color when only one color is specified followed by a trailing "/"' do
       subject.set_http_trace_proc(true, false, 'yel/').call(sample_request, sample_response)
       expect(@output).to eq http_trace_single_color_output
     end
 
-    it 'should only log HTTP response in color when only one colour is specified after a leading "/"' do
+    it 'should only log HTTP response in color when only one color is specified after a leading "/"' do
       subject.set_http_trace_proc(true, false, '/yel').call(sample_request, sample_response)
       expect(@output).to eq http_trace_single_color_output_leading_slash
     end
@@ -230,7 +230,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       expect(@output).to eq http_trace_no_color_output
     end
 
-    it 'should only log HTTP request in color when only one color is specified without "/"' do
+    it 'should only log HTTP request in color when only one color is specified without any "/"s' do
       subject.set_http_trace_proc(true, false, 'yel').call(sample_request, sample_response)
       expect(@output).to eq http_trace_single_color_output
     end
@@ -243,5 +243,4 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       expect(subject.set_http_trace_proc(nil, false, nil)).to be_nil
     end
   end
-
 end
