@@ -33,7 +33,7 @@ module Metasploit
           else
             result_opts[:service_name] = 'http'
           end
-          begin 
+          begin
             json_post_data = JSON.pretty_generate({ Username: credential.public, Password: credential.private })
             res = send_request({
               'method' => 'POST',

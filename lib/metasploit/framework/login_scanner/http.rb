@@ -12,14 +12,14 @@ module Metasploit
         include Metasploit::Framework::LoginScanner::Base
         include Metasploit::Framework::LoginScanner::RexSocket
 
-        DEFAULT_REALM = nil
-        DEFAULT_PORT = 80
-        DEFAULT_SSL_PORT = 443
+        DEFAULT_REALM        = nil
+        DEFAULT_PORT         = 80
+        DEFAULT_SSL_PORT     = 443
         DEFAULT_HTTP_SUCCESS_CODES = [ 200, 201 ].append(*(300..309))
-        LIKELY_PORTS = [ 80, 443, 8000, 8080 ]
+        LIKELY_PORTS         = [ 80, 443, 8000, 8080 ]
         LIKELY_SERVICE_NAMES = [ 'http', 'https' ]
-        PRIVATE_TYPES = [ :password ]
-        REALM_KEY = Metasploit::Model::Realm::Key::ACTIVE_DIRECTORY_DOMAIN
+        PRIVATE_TYPES        = [ :password ]
+        REALM_KEY            = Metasploit::Model::Realm::Key::ACTIVE_DIRECTORY_DOMAIN
 
         # @!attribute uri
         #   @return [String] The path and query string on the server to
@@ -118,6 +118,14 @@ module Metasploit
         #   @return [Integer] How many fake post variables to insert into the request
         attr_accessor :evade_pad_post_params_count
 
+        # @!attribute evade_shuffle_get_params
+        #   @return [Boolean] Randomize order of GET parameters
+        attr_accessor :evade_shuffle_get_params
+
+        # @!attribute evade_shuffle_post_params
+        #   @return [Boolean] Randomize order of POST parameters
+        attr_accessor :evade_shuffle_post_params
+
         # @!attribute evade_uri_fake_end
         #   @return [Boolean] Whether to add a fake end of URI (eg: /%20HTTP/1.0/../../)
         attr_accessor :evade_uri_fake_end
@@ -162,6 +170,18 @@ module Metasploit
         #   @return [Boolean] Whether to conform to IIS digest authentication mode.
         attr_accessor :digest_auth_iis
 
+        # @!attribute http_trace
+        # @return [Boolean] Whether HTTP requests and responses need to be logged
+        attr_accessor :http_trace
+
+        # @!attribute http_trace
+        # @return [Boolean] Whether only HTTP headers need to be logged
+        attr_accessor :http_trace_headers_only
+
+        # @!attribute_http_trace_colors
+        # @return [String] Pair of colors for requests and responses
+        attr_accessor :http_trace_colors
+
         # @!attribute http_username
         # @return [String]
         attr_accessor :http_username
@@ -173,16 +193,6 @@ module Metasploit
         # @!attribute http_success_codes
         # @return [Array][Int] list of valid http response codes
         attr_accessor :http_success_codes
-
-        attr_accessor :http_trace
-
-        # @!attribute http_trace
-        # @return [Boolean] Whether only HTTP headers need to be logged
-        attr_accessor :http_trace_headers_only
-
-        # @!attribute_http_trace_colors
-        # @return [String] Pair of colors for requests and responses
-        attr_accessor :http_trace_colors
 
         validate :validate_http_codes
 
@@ -232,15 +242,15 @@ module Metasploit
         # @return [Rex::Proto::Http::Response] The HTTP response
         # @return [NilClass] An error has occured while reading the response (see #Rex::Proto::Http::Client#read_response)
         def send_request(opts)
-          rhost = opts['host'] || host
-          rport = opts['rport'] || port
-          cli_ssl = opts['ssl'] || ssl
+          rhost           = opts['host'] || host
+          rport           = opts['rport'] || port
+          cli_ssl         = opts['ssl'] || ssl
           cli_ssl_version = opts['ssl_version'] || ssl_version
-          cli_proxies = opts['proxies'] || proxies
-          username = opts['credential'] ? opts['credential'].public : http_username
-          password = opts['credential'] ? opts['credential'].private : http_password
-          realm = opts['credential'] ? opts['credential'].realm : nil
-          context = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module }
+          cli_proxies     = opts['proxies'] || proxies
+          username        = opts['credential'] ? opts['credential'].public : http_username
+          password        = opts['credential'] ? opts['credential'].private : http_password
+          realm           = opts['credential'] ? opts['credential'].realm : nil
+          context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module }
 
           res = nil
           http_trace_proc = set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
@@ -322,16 +332,27 @@ module Metasploit
 
         # Defines a proc to log HTTP requests and responses
         #
-        # @param http_trace [Bool] A Boolean representing the datastore['HttpTrace'] to check if HttpTrace is set or unset.
-        # @param http_trace_headers_only [Bool] A Boolean representing the datastore['HttpTraceHeadersOnly'] to check if only HTTP headers need to be logged.
-        # @param http_trace_colors [String] A string representing the datastore['HttpTraceColors'] to specify the colors in which request and response need to be logged.
-        # @return [Proc] A Proc object to log HTTP requests and responses, or nil if the datastore['HttpTrace'] is unset
+        # @param http_trace [Bool] A Boolean representing datastore['HttpTrace'] to check if HttpTrace is set or unset.
+        # @param http_trace_headers_only [Bool] A Boolean representing datastore['HttpTraceHeadersOnly'] to check if only HTTP headers need to be logged.
+        # @param http_trace_colors [String] A string representing datastore['HttpTraceColors'] to specify the colors in which request and response need to be logged.
+        # @return [Proc] A Proc object to log HTTP requests and responses, or nil if datastore['HttpTrace'] is unset
         def set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
           proc_httptrace = nil
           if http_trace
             proc_httptrace = proc { |request, response|
+              http_trace_colors = 'red/blu' if http_trace_colors.blank? # Set the default colors if none were provided.
+              http_trace_colors += '/' if http_trace_colors.count('/') == 0 # Append "/"" to the end of the string if no "/" were found in the string to ensure consistent formatting.
+
+              # The following line will turn each "/" line into " / " to ensure we always get two elements on the following
+              # split operation, and then adds the appropriate bld tag to the color if one was provided before mapping that
+              # back into the final two element array that http_trace_colors will be set to.
+              #
+              # Final output should be something like this:
+              # >> "red/".gsub('/', ' / ').split('/').map { |color| color&.strip.blank? ? '' : "%bld#{color.strip}" }
+              # => ["%bldred", ""]
+              # >>
               request_color, response_color =
-                (http_trace_colors || 'red/blu').split('/').map { |color| color.blank? ? '' : "%bld%#{color}" }
+                http_trace_colors.gsub('/', ' / ').split('/').map { |color| color&.strip.blank? ? '' : "%bld%#{color.strip}" }
 
               request = request.to_s(headers_only: http_trace_headers_only)
               framework_module.print_line('#' * 20)
@@ -362,47 +383,47 @@ module Metasploit
         # Rex::Proto::Http::Client configuration parameters.
         def configure_http_client(http_client)
           http_client.set_config(
-            'vhost' => vhost || host,
-            'agent' => user_agent,
-            'http_trace' => http_trace,
+            'vhost'                   => vhost || host,
+            'agent'                   => user_agent,
+            'http_trace'              => http_trace,
             'http_trace_headers_only' => http_trace_headers_only,
-            'http_trace_colors' => http_trace_colors
+            'http_trace_colors'       => http_trace_colors
           )
 
           possible_params = {
-            'uri_encode_mode' => evade_uri_encode_mode,
-            'uri_full_url' => evade_uri_full_url,
-            'pad_method_uri_count' => evade_pad_method_uri_count,
-            'pad_uri_version_count' => evade_pad_uri_version_count,
-            'pad_method_uri_type' => evade_pad_method_uri_type,
-            'pad_uri_version_type' => evade_pad_uri_version_type,
-            'method_random_valid' => evade_method_random_valid,
-            'method_random_invalid' => evade_method_random_invalid,
-            'method_random_case' => evade_method_random_case,
-            'version_random_valid' => evade_version_random_valid,
+            'uri_encode_mode'        => evade_uri_encode_mode,
+            'uri_full_url'           => evade_uri_full_url,
+            'pad_method_uri_count'   => evade_pad_method_uri_count,
+            'pad_uri_version_count'  => evade_pad_uri_version_count,
+            'pad_method_uri_type'    => evade_pad_method_uri_type,
+            'pad_uri_version_type'   => evade_pad_uri_version_type,
+            'method_random_valid'    => evade_method_random_valid,
+            'method_random_invalid'  => evade_method_random_invalid,
+            'method_random_case'     => evade_method_random_case,
+            'version_random_valid'   => evade_version_random_valid,
             'version_random_invalid' => evade_version_random_invalid,
             'uri_dir_self_reference' => evade_uri_dir_self_reference,
-            'uri_dir_fake_relative' => evade_uri_dir_fake_relative,
-            'uri_use_backslashes' => evade_uri_use_backslashes,
-            'pad_fake_headers' => evade_pad_fake_headers,
+            'uri_dir_fake_relative'  => evade_uri_dir_fake_relative,
+            'uri_use_backslashes'    => evade_uri_use_backslashes,
+            'pad_fake_headers'       => evade_pad_fake_headers,
             'pad_fake_headers_count' => evade_pad_fake_headers_count,
-            'pad_get_params' => evade_pad_get_params,
-            'pad_get_params_count' => evade_pad_get_params_count,
-            'pad_post_params' => evade_pad_post_params,
-            'pad_post_params_count' => evade_pad_post_params_count,
-            'shuffle_get_params' => evade_shuffle_get_params,
-            'shuffle_post_params' => evade_shuffle_post_params,
-            'uri_fake_end' => evade_uri_fake_end,
-            'uri_fake_params_start' => evade_uri_fake_params_start,
-            'header_folding' => evade_header_folding,
-            'usentlm2_session' => ntlm_use_ntlmv2_session,
-            'use_ntlmv2' => ntlm_use_ntlmv2,
-            'send_lm' => ntlm_send_lm,
-            'send_ntlm' => ntlm_send_ntlm,
-            'SendSPN' => ntlm_send_spn,
-            'UseLMKey' => ntlm_use_lm_key,
-            'domain' => ntlm_domain,
-            'DigestAuthIIS' => digest_auth_iis
+            'pad_get_params'         => evade_pad_get_params,
+            'pad_get_params_count'   => evade_pad_get_params_count,
+            'pad_post_params'        => evade_pad_post_params,
+            'pad_post_params_count'  => evade_pad_post_params_count,
+            'shuffle_get_params'     => evade_shuffle_get_params,
+            'shuffle_post_params'    => evade_shuffle_post_params,
+            'uri_fake_end'           => evade_uri_fake_end,
+            'uri_fake_params_start'  => evade_uri_fake_params_start,
+            'header_folding'         => evade_header_folding,
+            'usentlm2_session'       => ntlm_use_ntlmv2_session,
+            'use_ntlmv2'             => ntlm_use_ntlmv2,
+            'send_lm'                => ntlm_send_lm,
+            'send_ntlm'              => ntlm_send_ntlm,
+            'SendSPN'                => ntlm_send_spn,
+            'UseLMKey'               => ntlm_use_lm_key,
+            'domain'                 => ntlm_domain,
+            'DigestAuthIIS'          => digest_auth_iis
           }
 
           # Set the parameter only if it is not nil
@@ -419,26 +440,26 @@ module Metasploit
         # like timeouts and TCP evasion options
         def set_sane_defaults
           self.connection_timeout ||= 20
-          self.uri = '/' if uri.blank?
-          self.method = 'GET' if method.blank?
-          self.http_success_codes = DEFAULT_HTTP_SUCCESS_CODES if http_success_codes.nil?
+          self.uri = '/' if self.uri.blank?
+          self.method = 'GET' if self.method.blank?
+          self.http_success_codes = DEFAULT_HTTP_SUCCESS_CODES if self.http_success_codes.nil?
 
           # Note that this doesn't cover the case where ssl is unset and
           # port is something other than a default. In that situtation,
           # we don't know what the user has in mind so we have to trust
           # that they're going to do something sane.
-          if !ssl && port.nil?
+          if !(self.ssl) && self.port.nil?
             self.port = self.class::DEFAULT_PORT
             self.ssl = false
-          elsif ssl && port.nil?
+          elsif self.ssl && self.port.nil?
             self.port = self.class::DEFAULT_SSL_PORT
-          elsif ssl.nil? && port == self.class::DEFAULT_PORT
+          elsif self.ssl.nil? && self.port == self.class::DEFAULT_PORT
             self.ssl = false
-          elsif ssl.nil? && port == self.class::DEFAULT_SSL_PORT
+          elsif self.ssl.nil? && self.port == self.class::DEFAULT_SSL_PORT
             self.ssl = true
           end
 
-          if ssl.nil?
+          if self.ssl.nil?
             self.ssl = false
           end
 
@@ -450,14 +471,15 @@ module Metasploit
         # @param [String] target_uri the target URL
         # @return [String] the final URL mapped against the base
         def normalize_uri(target_uri)
-          (uri.to_s + '/' + target_uri.to_s).gsub(%r{/+}, '/')
+          (self.uri.to_s + "/" + target_uri.to_s).gsub(/\/+/, '/')
         end
 
+        private
+
         def validate_http_codes
-          errors.add(:http_success_codes, 'HTTP codes must be an Array') unless @http_success_codes.is_a?(Array)
+          errors.add(:http_success_codes, "HTTP codes must be an Array") unless @http_success_codes.is_a?(Array)
           @http_success_codes.each do |code|
             next if code >= 200 && code < 400
-
             errors.add(:http_success_codes, "Invalid HTTP code provided #{code}")
           end
         end
