@@ -339,7 +339,6 @@ module Metasploit
               request_color, response_color =
                 (http_trace_colors || 'red/blu').split('/').map { |color| color.blank? ? "" : "%bld%#{color}" }
               
-              #require 'pry';binding.pry
               request = request.to_s(headers_only: http_trace_headers_only)
               framework_module.print_line('#' * 20)
               framework_module.print_line('# Request:')
