@@ -1,6 +1,5 @@
 require 'metasploit/framework/login_scanner/base'
 require 'metasploit/framework/login_scanner/rex_socket'
-require 'lib/msf/core/exploit/remote/http_client'
 require 'rex/ui/text/output/stdio'
 
 module Metasploit
@@ -334,9 +333,19 @@ module Metasploit
           proc_httptrace = nil
           if http_trace
             proc_httptrace = proc { |request, response|
-              http_trace_colors = '/' if http_trace_colors.empty?
+              http_trace_colors = 'red/blu' if http_trace_colors.blank? # Set the default colors if none were provided.
+              http_trace_colors += '/' if http_trace_colors.count('/') == 0 # Append "/"" to the end of the string if no "/" were found in the string to ensure consistent formatting.
+
+              # The following line will turn each "/" line into " / " to ensure we always get two elements on the following
+              # split operation, and then adds the appropriate bld tag to the color if one was provided before mapping that
+              # back into the final two element array that http_trace_colors will be set to.
+              #
+              # Final output should be something like this:
+              # >> "red/".gsub('/', ' / ').split('/').map { |color| color&.strip.blank? ? '' : "%bld#{color.strip}" }
+              # => ["%bldred", ""]
+              # >>
               request_color, response_color =
-                (http_trace_colors || 'red/blu').gsub('/', ' / ').split('/').map { |color| color&.strip!.blank? ? '' : "%bld#{color}" }
+                http_trace_colors.gsub('/', ' / ').split('/').map { |color| color&.strip.blank? ? '' : "%bld%#{color.strip}" }
 
               request = request.to_s(headers_only: http_trace_headers_only)
               framework_module.print_line('#' * 20)
