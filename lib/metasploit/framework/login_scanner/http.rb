@@ -253,7 +253,8 @@ module Metasploit
           context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module }
 
           res = nil
-          http_trace_proc = set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
+          http_trace_proc_request = set_http_trace_proc_request(http_trace, http_trace_headers_only, http_trace_colors)
+          http_trace_proc_response = set_http_trace_proc_response(http_trace, http_trace_headers_only, http_trace_colors)
 
           cli = Rex::Proto::Http::Client.new(
             rhost,
@@ -264,7 +265,8 @@ module Metasploit
             cli_proxies,
             username,
             password,
-            http_trace_proc: http_trace_proc
+            http_trace_proc_request: http_trace_proc_request,
+            http_trace_proc_response: http_trace_proc_response
           )
           configure_http_client(cli)
 
@@ -330,16 +332,16 @@ module Metasploit
           Result.new(result_opts)
         end
 
-        # Defines a proc to log HTTP requests and responses
+        # Defines a proc to log HTTP requests
         #
         # @param http_trace [Bool] A Boolean representing datastore['HttpTrace'] to check if HttpTrace is set or unset.
         # @param http_trace_headers_only [Bool] A Boolean representing datastore['HttpTraceHeadersOnly'] to check if only HTTP headers need to be logged.
         # @param http_trace_colors [String] A string representing datastore['HttpTraceColors'] to specify the colors in which request and response need to be logged.
-        # @return [Proc] A Proc object to log HTTP requests and responses, or nil if datastore['HttpTrace'] is unset
-        def set_http_trace_proc(http_trace, http_trace_headers_only, http_trace_colors)
-          proc_httptrace = nil
+        # @return [Proc] A Proc object to log HTTP requests, or nil if datastore['HttpTrace'] is unset
+        def set_http_trace_proc_request(http_trace, http_trace_headers_only, http_trace_colors)
+          proc_httptrace_request = nil
           if http_trace
-            proc_httptrace = proc { |request, response|
+            proc_httptrace_request = proc { |request|
               http_trace_colors = 'red/blu' if http_trace_colors.blank? # Set the default colors if none were provided.
               http_trace_colors += '/' if http_trace_colors.count('/') == 0 # Append "/"" to the end of the string if no "/" were found in the string to ensure consistent formatting.
 
@@ -359,6 +361,26 @@ module Metasploit
               framework_module.print_line('# Request:')
               framework_module.print_line('#' * 20)
               framework_module.print_line("%clr#{request_color}#{request}%clr")
+            }
+          end
+
+          proc_httptrace_request
+        end
+
+        # Defines a proc to log HTTP responses
+        #
+        # @param http_trace [Bool] A Boolean representing datastore['HttpTrace'] to check if HttpTrace is set or unset.
+        # @param http_trace_headers_only [Bool] A Boolean representing datastore['HttpTraceHeadersOnly'] to check if only HTTP headers need to be logged.
+        # @param http_trace_colors [String] A string representing datastore['HttpTraceColors'] to specify the colors in which request and response need to be logged.
+        # @return [Proc] A Proc object to log HTTP responses, or nil if datastore['HttpTrace'] is unset
+        def set_http_trace_proc_response(http_trace, http_trace_headers_only, http_trace_colors)
+          proc_httptrace_response = nil
+          if http_trace
+            proc_httptrace_response = proc { |response|
+              http_trace_colors = 'red/blu' if http_trace_colors.blank? # Set the default colors if none were provided.
+              http_trace_colors += '/' if http_trace_colors.count('/') == 0 # Append "/"" to the end of the string if no "/" were found in the string to ensure consistent formatting.
+              request_color, response_color =
+                http_trace_colors.gsub('/', ' / ').split('/').map { |color| color&.strip.blank? ? '' : "%bld%#{color.strip}" }
 
               framework_module.print_line('#' * 20)
               framework_module.print_line('# Response:')
@@ -366,7 +388,6 @@ module Metasploit
 
               if response
                 response = response.to_terminal_output(headers_only: http_trace_headers_only)
-
                 framework_module.print_line("%clr#{response_color}#{response}%clr")
               else
                 framework_module.print_line('No response received')
@@ -374,7 +395,7 @@ module Metasploit
             }
           end
 
-          proc_httptrace
+          proc_httptrace_response
         end
 
         private

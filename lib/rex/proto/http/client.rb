@@ -21,7 +21,7 @@ class Client
   #
   # Creates a new client instance
   #
-  def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil, http_trace_proc: nil)
+  def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil, http_trace_proc_request: nil, http_trace_proc_response: nil)
     self.hostname = host
     self.port     = port.to_i
     self.context  = context
@@ -31,7 +31,8 @@ class Client
     self.username = username
     self.password = password
     self.comm = comm
-    self.http_trace_proc = http_trace_proc
+    self.http_trace_proc_request = http_trace_proc_request
+    self.http_trace_proc_response = http_trace_proc_response
 
     # Take ClientRequest's defaults, but override with our own
     self.config = Http::ClientRequest::DefaultConfig.merge({
@@ -232,11 +233,11 @@ class Client
     if req.respond_to?(:opts) && req.opts['ntlm_transform_request'] && self.ntlm_client
       req = req.opts['ntlm_transform_request'].call(self.ntlm_client, req)
     end
-
+    httptrace_use_callback_request(req)
     send_request(req, t)
 
     res = read_response(t)
-    httptrace_use_callback(req, res)
+    httptrace_use_callback_response(res)
     if req.respond_to?(:opts) && req.opts['ntlm_transform_response'] && self.ntlm_client
       req.opts['ntlm_transform_response'].call(self.ntlm_client, res)
     end
@@ -681,9 +682,13 @@ class Client
     end
     nil
   end
+  
+  def httptrace_use_callback_request(req)
+    self.http_trace_proc_request.call(req) unless self.http_trace_proc_request.nil?
+  end
 
-  def httptrace_use_callback(req, res)
-    self.http_trace_proc.call(req, res) unless self.http_trace_proc.nil?
+  def httptrace_use_callback_response(res)
+    self.http_trace_proc_response.call(res) unless self.http_trace_proc_response.nil?
   end
 
   #
@@ -729,8 +734,11 @@ class Client
   # When parsing the request, thunk off the first response from the server, since junk
   attr_accessor :junk_pipeline
 
-  # HTTP-Trace
-  attr_accessor :http_trace_proc
+  # HTTP-Trace request
+  attr_accessor :http_trace_proc_request
+
+  # HTTP-Trace response
+  attr_accessor :http_trace_proc_response
 
 protected
 
