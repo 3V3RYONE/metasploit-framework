@@ -49,31 +49,6 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       res
     end
 
-    let(:normal_request_output) do
-      [
-        '####################',
-        '# Request:',
-        '####################',
-        "%clr%bld%redGET / HTTP/1.1\r",
-        "Host: \r",
-        "User-Agent: Met\r",
-        "Content-Length: 49\r",
-        "\r",
-        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
-      ]
-    end
-    
-    let(:normal_response_output) do
-      [
-        '####################',
-        '# Response:',
-        '####################',
-        "%clr%bld%bluHTTP/1.1 302 Found\r",
-        "\r",
-        'Location: https://www.google.com/?gws_rd=ssl%clr'
-      ]
-    end
-
     let(:normal_request_response_output) do
       [
         '####################',
@@ -130,32 +105,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
         '%clr'
       ]
     end
-
-    let(:http_trace_colors_output_request) do
-      [
-        '####################',
-        '# Request:',
-        '####################',
-        "%clr%bld%bluGET / HTTP/1.1\r",
-        "Host: \r",
-        "User-Agent: Met\r",
-        "Content-Length: 49\r",
-        "\r",
-        'bufaction=verifyLogin&user=admin&password=turnkey%clr',
-      ]
-    end
-    
-    let(:http_trace_colors_output_response) do
-      [
-        '####################',
-        '# Response:',
-        '####################',
-        "%clr%bld%grnHTTP/1.1 302 Found\r",
-        "\r",
-        'Location: https://www.google.com/?gws_rd=ssl%clr'
-      ]
-    end
-
+ 
     let(:http_trace_colors_output) do
       [
         '####################',
@@ -243,17 +193,7 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
     it 'returns a proc object to log response when HttpTrace is set to true' do
       expect(subject.set_http_trace_proc_response(true, false, nil)).to be_kind_of(Proc)
     end
-
-    it 'should output the provided request with headers when HttpTrace is set' do
-      subject.set_http_trace_proc_request(true, false, nil).call(sample_request)
-      expect(@output).to eq normal_request_output
-    end
-
-    it 'should output the provided response with headers when HttpTrace is set' do
-      subject.set_http_trace_proc_response(true, false, nil).call(sample_response)
-      expect(@output).to eq normal_response_output
-    end
-
+    
     it 'should output the provided request and response with headers when HttpTrace is set' do
       subject.set_http_trace_proc_request(true, false, nil).call(sample_request)
       subject.set_http_trace_proc_response(true, false, nil).call(sample_response)
@@ -277,18 +217,8 @@ RSpec.describe Metasploit::Framework::LoginScanner::HTTP do
       subject.set_http_trace_proc_response(true, nil, nil).call(sample_response)
       expect(@output).to eq normal_request_response_output
     end
-
-    it 'should log HTTP requests in the respective colors specified' do
-      subject.set_http_trace_proc_request(true, false, 'blu/grn').call(sample_request)
-      expect(@output).to eq http_trace_colors_output_request
-    end
-
-     it 'should log HTTP responses in the respective colors specified' do
-      subject.set_http_trace_proc_response(true, false, 'blu/grn').call(sample_response)
-      expect(@output).to eq http_trace_colors_output_response
-    end
-     
-     it 'should log HTTP requests and responses in the respective colors specified' do
+    
+    it 'should log HTTP requests and responses in the respective colors specified' do
       subject.set_http_trace_proc_request(true, false, 'blu/grn').call(sample_request)
       subject.set_http_trace_proc_response(true, false, 'blu/grn').call(sample_response)
       expect(@output).to eq http_trace_colors_output

@@ -20,6 +20,8 @@ class Client
 
   #
   # Creates a new client instance
+  # @param http_trace_proc_request [Proc] A proc object passed to log HTTP requests if HTTP-Trace is set
+  # @param http_trace_proc_response [Proc] A proc object passed to log HTTP responses if HTTP-Trace is set
   #
   def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil, http_trace_proc_request: nil, http_trace_proc_response: nil)
     self.hostname = host
