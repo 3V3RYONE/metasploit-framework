@@ -253,8 +253,7 @@ module Metasploit
           context         = opts['context'] || { 'Msf' => framework, 'MsfExploit' => framework_module }
 
           res = nil
-          http_trace_proc_request = set_http_trace_proc_request(http_trace, http_trace_headers_only, http_trace_colors)
-          http_trace_proc_response = set_http_trace_proc_response(http_trace, http_trace_headers_only, http_trace_colors)
+          http_logger_subscriber = HttpLoggerSubscriber.new(logger: framework_module)
 
           cli = Rex::Proto::Http::Client.new(
             rhost,
@@ -265,8 +264,7 @@ module Metasploit
             cli_proxies,
             username,
             password,
-            http_trace_proc_request: http_trace_proc_request,
-            http_trace_proc_response: http_trace_proc_response
+            subscriber: http_logger_subscriber
           )
           configure_http_client(cli)
 

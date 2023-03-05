@@ -23,7 +23,7 @@ class Client
   # @param http_trace_proc_request [Proc] A proc object passed to log HTTP requests if HTTP-Trace is set
   # @param http_trace_proc_response [Proc] A proc object passed to log HTTP responses if HTTP-Trace is set
   #
-  def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil, http_trace_proc_request: nil, http_trace_proc_response: nil)
+  def initialize(host, port = 80, context = {}, ssl = nil, ssl_version = nil, proxies = nil, username = '', password = '', comm: nil, subscriber: nil)
     self.hostname = host
     self.port     = port.to_i
     self.context  = context
@@ -33,9 +33,8 @@ class Client
     self.username = username
     self.password = password
     self.comm = comm
-    self.http_trace_proc_request = http_trace_proc_request
-    self.http_trace_proc_response = http_trace_proc_response
-
+    self.subscriber = subscriber || HttpSubscriber.new
+    
     # Take ClientRequest's defaults, but override with our own
     self.config = Http::ClientRequest::DefaultConfig.merge({
       'read_max_data'   => (1024*1024*1),
@@ -235,11 +234,13 @@ class Client
     if req.respond_to?(:opts) && req.opts['ntlm_transform_request'] && self.ntlm_client
       req = req.opts['ntlm_transform_request'].call(self.ntlm_client, req)
     end
-    httptrace_use_callback_request(req)
+    subscriber.on_request(req)
+    #httptrace_use_callback_request(req)
     send_request(req, t)
 
     res = read_response(t)
-    httptrace_use_callback_response(res)
+    subscriber.on_response(res)
+    #httptrace_use_callback_response(res)
     if req.respond_to?(:opts) && req.opts['ntlm_transform_response'] && self.ntlm_client
       req.opts['ntlm_transform_response'].call(self.ntlm_client, res)
     end
@@ -741,6 +742,9 @@ class Client
 
   # HTTP-Trace response
   attr_accessor :http_trace_proc_response
+
+  # HTTP subscriber
+  attr_accessor :subscriber
 
 protected
 
